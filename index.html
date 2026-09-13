@@ -394,6 +394,12 @@ function renderSortRow(){
     `<button class="chip ${sortOrder==='oldest'?'active':''}" onclick="setSort('oldest')">${b}</button>`;
 }
 function norm(s){ return (s||'').toString().toLowerCase().replace(/\s+/g,''); }
+function allLangTexts(x){
+  if(typeof x === 'string') return [x];
+  if(x && typeof x === 'object' && !Array.isArray(x)) return LANG_CODES.map(c=>x[c]).filter(Boolean);
+  return [];
+}
+function pushUniqueKw(arr,k){ if(!arr.some(x=>norm(x)===norm(k))) arr.push(k); }
 const CATEGORIES = ['concert','show','photobook','behind','musicshow','event','offline','etc'];
 
 let videos = [];
@@ -568,7 +574,7 @@ function applyPasteDraft(){
     LANG_CODES.forEach(c=>{ document.getElementById('schedInput_'+c).value = r.sched[c]; });
     addSchedToDraft();
   }
-  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!draftKw[c].includes(k)) draftKw[c].push(k); }); });
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(draftKw[c],k)); });
   r.countries.forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
   renderDraftKw(); renderDraftCountry();
   ta.value=''; showToast(t('pasteDone'));
@@ -584,7 +590,7 @@ function applyPasteEdit(vid){
     if(!exists) editDraft.schedule.push({...r.sched});
   }
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
-  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!editDraft.keywords[c].includes(k)) editDraft.keywords[c].push(k); }); });
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(editDraft.keywords[c],k)); });
   editDraft.countries = editDraft.countries||[];
   r.countries.forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
   render(); showToast(t('pasteDone'));
@@ -869,7 +875,7 @@ function addSchedToDraft(){
 function removeDraftSched(idx){ draftSched.splice(idx,1); renderDraftSched(); }
 function addKwToDraft(){
   const inp = document.getElementById('kwInput');
-  splitTags(inp.value).forEach(kw=>{ if(!draftKw[lang].includes(kw)) draftKw[lang].push(kw); });
+  splitTags(inp.value).forEach(kw=>pushUniqueKw(draftKw[lang],kw));
   inp.value=''; renderDraftKw(); inp.focus();
 }
 function removeDraftKw(c,kw){ draftKw[c] = draftKw[c].filter(k=>k!==kw); renderDraftKw(); }
@@ -950,7 +956,7 @@ function addEditKw(vid){
   const inp = document.getElementById('ek-'+vid);
   if(!inp.value.trim() || !editDraft) return;
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
-  splitTags(inp.value).forEach(kw=>{ if(!editDraft.keywords[lang].includes(kw)) editDraft.keywords[lang].push(kw); });
+  splitTags(inp.value).forEach(kw=>pushUniqueKw(editDraft.keywords[lang],kw));
   render();
   const next = document.getElementById('ek-'+vid); if(next) next.focus();
 }
@@ -1011,10 +1017,10 @@ function render(){
   if(q){
     const nq = norm(q);
     list = list.filter(v=>
-      norm(tr(v.title)).includes(nq) ||
+      allLangTexts(v.title).some(s=>norm(s).includes(nq)) ||
       (v.members||[]).some(m=>norm(m).includes(nq)||norm(mName(m)).includes(nq)||norm(MEMBER_FULLNAME[m]||'').includes(nq)) ||
-      (v.schedule||[]).some(k=>norm(tr(k)).includes(nq)) ||
-      (()=>{ const kwo=normalizeKw(v.keywords); return [...kwo.ko,...kwo.en,...kwo.zh,...kwo.ja].some(k=>norm(k).includes(nq)); })() ||
+      (v.schedule||[]).some(k=>allLangTexts(k).some(s=>norm(s).includes(nq))) ||
+      (()=>{ const kwo=normalizeKw(v.keywords); return LANG_CODES.some(c=>(kwo[c]||[]).some(k=>norm(k).includes(nq))); })() ||
       (v.countries||(v.country?[v.country]:[])).some(c=>countryMatchesQuery(c,nq))
     );
   }
