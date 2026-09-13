@@ -642,7 +642,7 @@ function renderNotice(){
 }
 
 const REQUEST_I18N = {
-  ko:{title:'요청하기',ph:'오류 신고나 원하는 기능을 적어주세요 (예: 언어 추가)',submit:'보내기',ok:'요청을 보냈어요. 감사합니다!',fail:'전송에 실패했어요.',empty:'내용을 입력해주세요.'},
+  ko:{title:'요청하기',ph:'오류 신고나 원하는 기능을 적어주세요 (예: 언어 추가)',submit:'보내기',ok:'요청을 보냈어요.',fail:'전송에 실패했어요.',empty:'내용을 입력해주세요.'},
   en:{title:'Send a Request',ph:'Report a bug or suggest a feature (e.g. add a language)',submit:'Send',ok:'Your request has been sent. Thank you!',fail:'Failed to send.',empty:'Please enter your message.'},
   zh:{title:'提交请求',ph:'请反馈错误或提出建议（例如添加语言）',submit:'发送',ok:'已发送，谢谢！',fail:'发送失败。',empty:'请输入内容。'},
   ja:{title:'リクエスト送信',ph:'不具合報告やご要望を入力してください（例：言語の追加）',submit:'送信',ok:'送信しました。ありがとうございます！',fail:'送信に失敗しました。',empty:'内容を入力してください。'}
@@ -670,7 +670,7 @@ async function submitRequest(){
     await setDoc(doc(db,"requests",uid()), { text: val, lang, createdAt: Date.now() });
     showToast(ri.ok);
     closeRequest();
-  }catch(e){ showToast(ri.fail); }
+  }catch(e){ console.error('submitRequest failed:', e); showToast(ri.fail); }
 }
 
 const REQUESTS_ADMIN_I18N = { ko:{title:'요청함',empty:'아직 들어온 요청이 없어요.',del:'삭제'}, en:{title:'Requests',empty:'No requests yet.',del:'Delete'}, zh:{title:'请求箱',empty:'暂无请求。',del:'删除'}, ja:{title:'リクエスト一覧',empty:'まだリクエストはありません。',del:'削除'} };
