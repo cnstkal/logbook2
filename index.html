@@ -161,12 +161,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
         <button class="icon-btn" id="noticeBtn" onclick="openNotice()" title="notice">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </button>
-        <button class="icon-btn" id="requestBtn" onclick="openRequest()" title="request">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
-        </button>
-        <button class="icon-btn" id="requestsAdminBtn" onclick="openRequestsAdmin()" title="requests inbox" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-        </button>
         <button class="icon-btn" id="updateNoticeAdminBtn" onclick="openUpdateNoticeAdmin()" title="update notice" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
         </button>
@@ -221,7 +215,25 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
         </div>
         <div class="field">
           <label id="pasteLabel">일괄 붙여넣기</label>
-          <textarea id="pasteDraftInput" rows="4" placeholder="형식대로 붙여넣고 적용을 눌러주세요" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;"></textarea>
+          <textarea id="pasteDraftInput" rows="4" placeholder="스케줄
+
+한국어: 서울콘서트
+영어: Seoul Concert
+중국어: 首尔演唱会
+일본어: ソウルコンサート
+스페인어: Concierto de Seúl
+포르투갈어: Show em Seul
+
+숨겨진 검색어
+한국어: 키워드1, 키워드2
+영어: keyword1, keyword2
+중국어:
+일본어:
+스페인어:
+포르투갈어:
+
+나라
+한국, 서울" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;"></textarea>
           <div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" id="pasteDraftBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteDraft()">적용</button></div>
         </div>
         <div class="field">
@@ -284,25 +296,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
   </div>
 </div>
 
-<div class="notice-overlay" id="requestOverlay" onclick="if(event.target===this)closeRequest()">
-  <div class="notice-sheet">
-    <button class="notice-close" onclick="closeRequest()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div class="notice-title" id="requestTitle">요청하기</div>
-    <div class="notice-body" id="requestBody"></div>
-  </div>
-</div>
-
-<div class="notice-overlay" id="requestsAdminOverlay" onclick="if(event.target===this)closeRequestsAdmin()">
-  <div class="notice-sheet">
-    <button class="notice-close" onclick="closeRequestsAdmin()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div class="notice-title" id="requestsAdminTitle">요청함</div>
-    <div class="notice-body" id="requestsAdminBody"></div>
-  </div>
-</div>
 
 <div class="notice-overlay" id="updateNoticeOverlay" onclick="if(event.target===this)closeUpdateNotice()">
   <div class="notice-sheet">
@@ -342,7 +335,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const videosCol = collection(db, "videos");
 const noticeDocRef = doc(db, "config", "notice");
-const requestsCol = collection(db, "requests");
 const auth = getAuth(app);
 const ADMIN_UID = "aC0e3rHKAPQOwt1Ql6QXhLcHG8q1";
 function isAdminUser(user){ return !!user && user.uid === ADMIN_UID; }
@@ -682,75 +674,6 @@ function renderNotice(){
     </div>`;
 }
 
-const REQUEST_I18N = {
-  ko:{title:'요청하기',ph:'오류 신고나 원하는 기능을 적어주세요 (예: 언어 추가)',submit:'보내기',ok:'요청을 보냈어요.',fail:'전송에 실패했어요.',empty:'내용을 입력해주세요.'},
-  en:{title:'Send a Request',ph:'Report a bug or suggest a feature (e.g. add a language)',submit:'Send',ok:'Your request has been sent. Thank you!',fail:'Failed to send.',empty:'Please enter your message.'},
-  zh:{title:'提交请求',ph:'请反馈错误或提出建议（例如添加语言）',submit:'发送',ok:'已发送，谢谢！',fail:'发送失败。',empty:'请输入内容。'},
-  ja:{title:'リクエスト送信',ph:'不具合報告やご要望を入力してください（例：言語の追加）',submit:'送信',ok:'送信しました。ありがとうございます！',fail:'送信に失敗しました。',empty:'内容を入力してください。'},
-  es:{title:'Enviar solicitud',ph:'Reporta un error o sugiere una función (ej: agregar un idioma)',submit:'Enviar',ok:'Tu solicitud fue enviada. ¡Gracias!',fail:'Error al enviar.',empty:'Por favor ingresa tu mensaje.'},
-  pt:{title:'Enviar solicitação',ph:'Relate um erro ou sugira um recurso (ex: adicionar um idioma)',submit:'Enviar',ok:'Sua solicitação foi enviada. Obrigado!',fail:'Falha ao enviar.',empty:'Por favor, digite sua mensagem.'}
-};
-function openRequest(){
-  document.getElementById('requestTitle').textContent = REQUEST_I18N[lang].title;
-  renderRequestBody();
-  document.getElementById('requestOverlay').classList.add('show');
-}
-function closeRequest(){ document.getElementById('requestOverlay').classList.remove('show'); }
-function renderRequestBody(){
-  const ri = REQUEST_I18N[lang];
-  document.getElementById('requestBody').innerHTML = `
-    <textarea id="requestTextarea" rows="2" placeholder="${escapeHtml(ri.ph)}" style="width:100%;min-height:60px;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
-    <div class="add-actions" style="margin-top:8px;">
-      <button type="button" class="btn-solid" onclick="submitRequest()">${ri.submit}</button>
-    </div>`;
-}
-async function submitRequest(){
-  const ri = REQUEST_I18N[lang];
-  const el = document.getElementById('requestTextarea');
-  const val = (el && el.value || '').trim();
-  if(!val){ showToast(ri.empty); return; }
-  try{
-    await setDoc(doc(db,"requests",uid()), { text: val, lang, createdAt: Date.now() });
-    showToast(ri.ok);
-    closeRequest();
-  }catch(e){ console.error('submitRequest failed:', e); showToast(ri.fail); }
-}
-
-const REQUESTS_ADMIN_I18N = { ko:{title:'요청함',empty:'아직 들어온 요청이 없어요.',del:'삭제'}, en:{title:'Requests',empty:'No requests yet.',del:'Delete'}, zh:{title:'请求箱',empty:'暂无请求。',del:'删除'}, ja:{title:'リクエスト一覧',empty:'まだリクエストはありません。',del:'削除'}, es:{title:'Solicitudes',empty:'Aún no hay solicitudes.',del:'Eliminar'}, pt:{title:'Solicitações',empty:'Ainda não há solicitações.',del:'Excluir'} };
-let requestsList = [];
-function subscribeRequests(){
-  onSnapshot(requestsCol, (snap)=>{
-    requestsList = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(document.getElementById('requestsAdminOverlay').classList.contains('show')) renderRequestsAdmin();
-  }, (err)=>{ console.error(err); });
-}
-function openRequestsAdmin(){
-  renderRequestsAdmin();
-  document.getElementById('requestsAdminOverlay').classList.add('show');
-}
-function closeRequestsAdmin(){ document.getElementById('requestsAdminOverlay').classList.remove('show'); }
-async function deleteRequestItem(id){
-  try{ await deleteDoc(doc(db,"requests",id)); }catch(e){}
-}
-function renderRequestsAdmin(){
-  const ri = REQUESTS_ADMIN_I18N[lang];
-  document.getElementById('requestsAdminTitle').textContent = ri.title;
-  if(!requestsList.length){
-    document.getElementById('requestsAdminBody').innerHTML = `<p style="color:var(--ink3);font-size:13.5px;">${ri.empty}</p>`;
-    return;
-  }
-  document.getElementById('requestsAdminBody').innerHTML = `<div style="max-height:264px;overflow-y:auto;">` + requestsList.map(r=>{
-    const dt = r.createdAt ? new Date(r.createdAt).toLocaleString() : '';
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);">
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:10.5px;color:var(--ink3);margin-bottom:3px;">${escapeHtml(dt)} · ${escapeHtml((r.lang||'').toUpperCase())}</div>
-        <div style="font-size:13px;color:var(--ink);white-space:pre-wrap;line-height:1.45;">${escapeHtml(r.text||'')}</div>
-      </div>
-      <button type="button" onclick="deleteRequestItem('${r.id}')" style="flex-shrink:0;border:none;background:var(--red-soft);color:var(--red);font-size:11px;font-weight:800;border-radius:var(--r-pill);padding:6px 11px;font-family:inherit;cursor:pointer;">${ri.del}</button>
-    </div>`;
-  }).join('') + `</div>`;
-}
-
 const updateNoticeDocRef = doc(db, "config", "updateNotice");
 let updateNoticeData = null;
 let updateNoticeShownThisSession = false;
@@ -850,7 +773,6 @@ function applyAdminVisibility(){
   document.getElementById('adminBtn').style.display = (isAdmin || isAdminEntryUrl()) ? 'flex' : 'none';
   document.getElementById('adminBtn').title = isAdmin ? '관리자 로그아웃' : '관리자 로그인';
   document.getElementById('addBoxCard').style.display = isAdmin ? 'block' : 'none';
-  document.getElementById('requestsAdminBtn').style.display = isAdmin ? 'flex' : 'none';
   document.getElementById('updateNoticeAdminBtn').style.display = isAdmin ? 'flex' : 'none';
 }
 const googleProvider = new GoogleAuthProvider();
@@ -880,7 +802,6 @@ onAuthStateChanged(auth, (user)=>{
   applyAdminVisibility();
   render();
   if(document.getElementById('noticeOverlay').classList.contains('show')) renderNotice();
-  if(isAdmin && !wasAdmin){ openRequestsAdmin(); }
   wasAdmin = isAdmin;
 });
 function toggleAddBox(){
@@ -1173,7 +1094,25 @@ function render(){
 
     const catSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('catLabel')}</div><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div>`;
 
-    const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" placeholder="형식대로 붙여넣고 적용을 눌러주세요" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button></div></div>`;
+    const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" placeholder="스케줄
+
+한국어: 서울콘서트
+영어: Seoul Concert
+중국어: 首尔演唱会
+일본어: ソウルコンサート
+스페인어: Concierto de Seúl
+포르투갈어: Show em Seul
+
+숨겨진 검색어
+한국어: 키워드1, 키워드2
+영어: keyword1, keyword2
+중국어:
+일본어:
+스페인어:
+포르투갈어:
+
+나라
+한국, 서울" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button></div></div>`;
 
     return `<div class="card ${flashId===v.id?'flash':''}">
       <div class="thumb">
@@ -1206,8 +1145,6 @@ Object.assign(window, {
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
   addEditCountry, removeEditCountry, setSort,
   openNotice, closeNotice, setNoticeLang, saveNoticeText, deleteNoticeText,
-  openRequest, closeRequest, submitRequest,
-  openRequestsAdmin, closeRequestsAdmin, deleteRequestItem,
   openUpdateNoticeAdmin, closeUpdateNoticeAdmin, setUpdateNoticeAdminLang, saveUpdateNotice, deleteUpdateNoticeLang,
   closeUpdateNotice, dismissUpdateNoticeForever,
   applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel, toggleCategoryFilter
@@ -1222,7 +1159,6 @@ renderDraftKw();
 render();
 subscribeVideos();
 subscribeNotice();
-subscribeRequests();
 subscribeUpdateNotice();
 </script>
 </body>
