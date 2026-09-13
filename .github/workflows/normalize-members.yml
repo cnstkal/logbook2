@@ -1,0 +1,38 @@
+name: Normalize member storage
+on:
+  push:
+    paths:
+      - .github/import-trigger.txt
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace("function sortMembersDisplay(arr){\n  return [...(arr||[])].sort((a,b)=>MEMBER_DISPLAY_ORDER.indexOf(a)-MEMBER_DISPLAY_ORDER.indexOf(b));\n}\n", "function sortMembersDisplay(arr){\n  return [...(arr||[])].sort((a,b)=>MEMBER_DISPLAY_ORDER.indexOf(a)-MEMBER_DISPLAY_ORDER.indexOf(b));\n}\nfunction normalizeMembers(arr){\n  const list = Array.isArray(arr) ? [...new Set(arr)] : [];\n  if(list.includes('전체') || ATEEZ_MEMBERS.every(m=>list.includes(m))) return ['전체'];\n  return list.filter(m=>ATEEZ_MEMBERS.includes(m));\n}\nfunction membersForEdit(arr){\n  const list = normalizeMembers(arr);\n  return list.includes('전체') ? [...ATEEZ_MEMBERS] : list;\n}\nfunction membersToSave(arr){\n  const list = [...new Set(arr||[])];\n  return ATEEZ_MEMBERS.every(m=>list.includes(m)) ? ['전체'] : list.filter(m=>ATEEZ_MEMBERS.includes(m));\n}\nfunction hasMember(v, member){\n  const list = normalizeMembers(v?.members);\n  return list.includes('전체') || list.includes(member);\n}\nfunction isAllMembers(v){\n  return normalizeMembers(v?.members).includes('전체');\n}\n")
+          s=s.replace("    videos = snap.docs.map(d=>d.data()).sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));\n", "    videos = snap.docs.map(d=>{\n      const data = d.data();\n      return {...data, members:normalizeMembers(data.members)};\n    }).sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));\n")
+          s=s.replace("  const all = draftMembers.length===ATEEZ_MEMBERS.length;\n", "  const all = ATEEZ_MEMBERS.every(m=>draftMembers.includes(m));\n")
+          s=s.replace("function toggleSelectAllDraft(){ draftMembers = draftMembers.length===ATEEZ_MEMBERS.length ? [] : [...ATEEZ_MEMBERS]; renderDraftMemberGrid(); }\n", "function toggleSelectAllDraft(){ draftMembers = ATEEZ_MEMBERS.every(m=>draftMembers.includes(m)) ? [] : [...ATEEZ_MEMBERS]; renderDraftMemberGrid(); }\n")
+          s=s.replace("members:[...draftMembers], schedule:[...draftSched]", "members:membersToSave(draftMembers), schedule:[...draftSched]")
+          s=s.replace("editDraft = { title:v.title, url:v.url, uploadYear:v.uploadYear||'', members:[...(v.members||[])], schedule:[...(v.schedule||[])],", "editDraft = { title:v.title, url:v.url, uploadYear:v.uploadYear||'', members:membersForEdit(v.members), schedule:[...(v.schedule||[])],")
+          s=s.replace("members:editDraft.members, schedule:editDraft.schedule,", "members:membersToSave(editDraft.members), schedule:editDraft.schedule,")
+          s=s.replace("function toggleEditMember(name){ if(!editDraft) return; editDraft.members = editDraft.members.includes(name) ? editDraft.members.filter(m=>m!==name) : [...editDraft.members,name]; render(); }\nfunction toggleEditSelectAll(){ if(!editDraft) return; editDraft.members = editDraft.members.length===ATEEZ_MEMBERS.length ? [] : [...ATEEZ_MEMBERS]; render(); }\n", "function toggleEditMember(name){ if(!editDraft) return; editDraft.members = membersForEdit(editDraft.members); editDraft.members = editDraft.members.includes(name) ? editDraft.members.filter(m=>m!==name) : [...editDraft.members,name]; render(); }\nfunction toggleEditSelectAll(){ if(!editDraft) return; editDraft.members = ATEEZ_MEMBERS.every(m=>editDraft.members.includes(m)) ? [] : [...ATEEZ_MEMBERS]; render(); }\n")
+          s=s.replace("  const set = new Set(); videos.forEach(v=>(v.members||[]).forEach(m=>set.add(m)));\n  return ATEEZ_MEMBERS.filter(m=>set.has(m));\n", "  const set = new Set(); videos.forEach(v=>{ const ms=normalizeMembers(v.members); if(ms.includes('전체')) ATEEZ_MEMBERS.forEach(m=>set.add(m)); else ms.forEach(m=>set.add(m)); });\n  return ATEEZ_MEMBERS.filter(m=>set.has(m));\n")
+          s=s.replace("  if(activeMembers.size){ const amArr=[...activeMembers]; list = list.filter(v=>amArr.every(m=>(v.members||[]).includes(m))); }\n  if(excludeAllMembers){ list = list.filter(v=>(v.members||[]).length !== ATEEZ_MEMBERS.length); }\n", "  if(activeMembers.size){ const amArr=[...activeMembers]; list = list.filter(v=>amArr.every(m=>hasMember(v,m))); }\n  if(excludeAllMembers){ list = list.filter(v=>!isAllMembers(v)); }\n")
+          s=s.replace("    const vMembers = editing ? (src.members || []) : sortMembersDisplay(src.members || []);\n", "    const vMembers = editing ? membersForEdit(src.members) : normalizeMembers(src.members);\n")
+          s=s.replace(": (vMembers.length===ATEEZ_MEMBERS.length ? `<span class=\"member-badge\">${t('allMembers')}</span>` : vMembers.length ? vMembers.map(m=>`<span class=\"member-badge\">${mName(m)}</span>`).join('') : `<span class=\"empty-txt\">${t('noMemberOnCard')}</span>`);", ": (vMembers.includes('전체') ? `<span class=\"member-badge\">${t('allMembers')}</span>` : vMembers.length ? sortMembersDisplay(vMembers).map(m=>`<span class=\"member-badge\">${mName(m)}</span>`).join('') : `<span class=\"empty-txt\">${t('noMemberOnCard')}</span>`);")
+          p.write_text(s)
+          PY
+          node --check <(sed -n '/<script type="module">/,/<\/script>/p' index.html | sed '1d;$d')
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git diff --cached --quiet || git commit -m "Store all members as 전체"
+          git push
