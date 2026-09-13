@@ -399,7 +399,23 @@ function allLangTexts(x){
   if(x && typeof x === 'object' && !Array.isArray(x)) return LANG_CODES.map(c=>x[c]).filter(Boolean);
   return [];
 }
-function pushUniqueKw(arr,k){ if(!arr.some(x=>norm(x)===norm(k))) arr.push(k); }
+function pushUniqueKw(kwObj,code,k){
+  const nk = norm(k);
+  if(!nk) return;
+  const exists = LANG_CODES.some(c=>(kwObj[c]||[]).some(x=>norm(x)===nk));
+  if(!exists) kwObj[code].push(k);
+}
+function dedupeKwObj(kwObj){
+  const seen = new Set();
+  LANG_CODES.forEach(c=>{
+    kwObj[c] = (kwObj[c]||[]).filter(k=>{
+      const nk = norm(k);
+      if(!nk || seen.has(nk)) return false;
+      seen.add(nk);
+      return true;
+    });
+  });
+}
 const CATEGORIES = ['concert','show','photobook','behind','musicshow','event','offline','etc'];
 
 let videos = [];
@@ -585,7 +601,7 @@ function applyPasteDraft(){
   if(r.year) document.getElementById('yearInput').value = r.year;
   expandSchedBlocks(r.schedBlocks).forEach(obj=> draftSched.push(obj));
   renderDraftSched();
-  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(draftKw[c],k)); });
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(draftKw,c,k)); });
   r.countries.forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
   renderDraftKw(); renderDraftCountry();
   ta.value=''; showToast(t('pasteDone'));
@@ -598,7 +614,7 @@ function applyPasteEdit(vid){
   if(r.year) editDraft.uploadYear = r.year;
   expandSchedBlocks(r.schedBlocks).forEach(obj=> editDraft.schedule.push(obj));
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
-  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(editDraft.keywords[c],k)); });
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(editDraft.keywords,c,k)); });
   editDraft.countries = editDraft.countries||[];
   r.countries.forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
   render(); showToast(t('pasteDone'));
@@ -880,7 +896,7 @@ function addSchedToDraft(){
 function removeDraftSched(idx){ draftSched.splice(idx,1); renderDraftSched(); }
 function addKwToDraft(){
   const inp = document.getElementById('kwInput');
-  splitTags(inp.value).forEach(kw=>pushUniqueKw(draftKw[lang],kw));
+  splitTags(inp.value).forEach(kw=>pushUniqueKw(draftKw,lang,kw));
   inp.value=''; renderDraftKw(); inp.focus();
 }
 function removeDraftKw(c,kw){ draftKw[c] = draftKw[c].filter(k=>k!==kw); renderDraftKw(); }
@@ -895,6 +911,7 @@ function renderDraftCountry(){
     `<span class="tag-pill">${escapeHtml(translateCountry(c))}<button onclick="removeDraftCountry('${c.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
 }
 function renderDraftKw(){
+  dedupeKwObj(draftKw);
   const items = [];
   LANG_CODES.forEach(c=> draftKw[c].forEach(k=> items.push({c,k})));
   document.getElementById('draftKwList').innerHTML = items.map(({c,k})=>
@@ -961,7 +978,7 @@ function addEditKw(vid){
   const inp = document.getElementById('ek-'+vid);
   if(!inp.value.trim() || !editDraft) return;
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
-  splitTags(inp.value).forEach(kw=>pushUniqueKw(editDraft.keywords[lang],kw));
+  splitTags(inp.value).forEach(kw=>pushUniqueKw(editDraft.keywords,lang,kw));
   render();
   const next = document.getElementById('ek-'+vid); if(next) next.focus();
 }
@@ -1045,6 +1062,7 @@ function render(){
     const src = editing ? editDraft : v;
     const vMembers = editing ? (src.members || []) : sortMembersDisplay(src.members || []);
     const vSched = src.schedule || [];
+    if(editing){ editDraft.keywords = normalizeKw(editDraft.keywords); dedupeKwObj(editDraft.keywords); }
     const vKw = normalizeKw(src.keywords);
     const vKwAll = editing ? LANG_CODES.flatMap(c=>(vKw[c]||[]).map(k=>({c,k}))) : (vKw[lang] || []);
     const vCategories = src.categories || (src.category ? [src.category] : []);
