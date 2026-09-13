@@ -1,60 +1,819 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>logbook.zip</title>
 <style>
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
-:root{--p:#6C4CF1;--bg:#FAF9FC;--surface:#fff;--ink:#1B1523;--muted:#77718a;--line:#ece9f3;--soft:#f1edff;--red:#f14c6c}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{touch-action:manipulation}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,sans-serif}.app{max-width:560px;margin:auto;min-height:100vh}.top{padding:20px}.logo{font-size:20px;font-weight:800;margin-bottom:18px}.search{display:flex;gap:8px;background:#fff;border-radius:999px;padding:6px 8px 6px 16px;box-shadow:0 5px 20px #1e14300d}.search input{flex:1;border:0;outline:0;background:none;padding:11px 0;font:inherit}.search button,.btn{border:0;border-radius:999px;padding:11px 16px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.chips{display:flex;gap:8px;overflow:auto;padding-top:12px}.chip{white-space:nowrap;border:0;background:#fff;color:var(--muted);padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer}.chip.active{background:var(--ink);color:#fff}.content{padding:0 20px 40px}.card{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 8px 25px #1e14300b;margin-bottom:16px}.thumb{aspect-ratio:16/9;background:#111}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.body{padding:16px}.title{font-size:16px;font-weight:800;line-height:1.4}.meta{font-size:12px;color:var(--muted);margin-top:6px}.section{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.label{font-size:11px;color:var(--muted);font-weight:800;margin-bottom:8px}.pills{display:flex;flex-wrap:wrap;gap:6px}.pill{display:inline-flex;padding:7px 11px;border-radius:999px;background:var(--soft);color:var(--p);font-size:12px;font-weight:700}.empty{text-align:center;padding:80px 20px;color:var(--muted)}.admin{display:none;background:#fff;border-radius:20px;padding:16px;margin:0 20px 18px;box-shadow:0 8px 25px #1e14300b}.admin.open{display:block}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;background:var(--bg)}.field textarea{min-height:90px;resize:vertical}.row{display:flex;gap:8px}.row>*{flex:1}.actions{display:flex;gap:8px;justify-content:flex-end}.danger{background:#ffe9ee;color:var(--red)}.notice{font-size:12px;color:var(--muted);padding:10px 0}.hidden{display:none!important}
+:root{
+  --p:#6C4CF1; --p-d:#5636D6; --p-soft:#F1EDFF;
+  --bg:#FAF9FC; --surface:#FFFFFF; --ink:#1B1523; --ink2:#75718A; --ink3:#B3AFC4;
+  --line:#EFEDF5; --mint:#17B587; --mint-soft:#E4F9F1; --amber:#FFB020; --red:#F14C6C; --red-soft:#FFE9EE;
+  --cat:#3D8BFF; --cat-soft:#EAF3FF;
+  --r-lg:24px; --r-md:16px; --r-sm:12px; --r-pill:999px;
+  --shadow:0 2px 8px rgba(30,20,60,.05), 0 12px 30px rgba(30,20,60,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{touch-action:manipulation;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',sans-serif;-webkit-font-smoothing:antialiased;}
+.app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:96px;}
+
+/* ---- Header ---- */
+.topbar{position:static;z-index:30;background:var(--bg);padding:18px 20px 10px;}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.logo{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;letter-spacing:-.03em;}
+.logo .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--p),#A78BFA);flex-shrink:0;}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);position:relative;}
+.icon-btn.on{background:var(--ink);color:#fff;}
+.icon-btn svg{width:18px;height:18px;}
+.hdr-title{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px;}
+.hdr-sub{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 16px;}
+
+.search-shell{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-pill);padding:4px 6px 4px 18px;box-shadow:var(--shadow);}
+.search-shell svg{flex-shrink:0;color:var(--ink3);}
+.search-shell input{flex:1;border:none;outline:none;background:transparent;font:inherit;font-size:14.5px;color:var(--ink);padding:12px 0;}
+.search-shell input::placeholder{color:var(--ink3);}
+.search-shell .go{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:none;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.search-shell .go svg{width:16px;height:16px;color:#fff;}
+
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 4px;scrollbar-width:none;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip-row.wrap{flex-wrap:wrap;overflow:visible;}
+.chip{flex-shrink:0;padding:8px 15px;border-radius:var(--r-pill);border:none;background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(30,20,60,.04);}
+#sortRow.chip-row{gap:6px;}
+#sortRow .chip{padding:5px 11px;font-size:11px;font-weight:600;box-shadow:none;background:var(--bg);}
+#sortRow .chip.active{background:var(--ink);color:#fff;}
+.chip.active{background:var(--ink);color:#fff;}
+.chip.member.active{background:var(--p);color:#fff;}
+.chip-empty{font-size:12.5px;color:var(--ink3);padding:8px 4px;}
+
+.panel{background:var(--surface);border-radius:var(--r-lg);margin:12px 20px 0;box-shadow:var(--shadow);overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.panel.open{max-height:900px;}
+.panel-inner{padding:18px 18px 4px;}
+.panel-block{margin-bottom:16px;}
+.panel-label{font-size:11.5px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px;}
+
+/* ---- Content ---- */
+.content{padding:16px 20px 0;}
+.stat-strip{display:flex;gap:8px;margin:6px 0 16px;}
+.stat-pill{flex:1;background:var(--surface);border-radius:var(--r-md);padding:12px 14px;box-shadow:0 1px 3px rgba(30,20,60,.04);text-align:center;}
+.stat-pill b{display:block;font-size:17px;font-weight:800;color:var(--p);}
+.stat-pill span{font-size:10.5px;color:var(--ink2);font-weight:600;}
+
+/* ---- Add box ---- */
+.add-card{border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden;display:none;}
+.add-head{display:flex;align-items:center;gap:10px;padding:17px 18px;cursor:pointer;font-weight:800;font-size:14.5px;}
+.add-head .plus{width:26px;height:26px;border-radius:9px;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;transition:transform .2s;flex-shrink:0;}
+.add-head.open .plus{transform:rotate(45deg);}
+.add-body{display:none;padding:2px 18px 18px;}
+.add-body.open{display:block;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:800;color:var(--ink2);margin-bottom:8px;}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--p);background:var(--surface);}
+.field input+input{margin-top:6px;}
+.field-hint{font-size:11.5px;color:var(--ink3);margin-top:6px;}
+.tag-input-row{display:flex;gap:8px;}
+.tag-input-row input{flex:1;}
+.tag-input-row button{flex-shrink:0;padding:0 16px;border-radius:var(--r-sm);border:none;background:var(--p-soft);color:var(--p);font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.tag-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:var(--r-pill);background:var(--p-soft);color:var(--p);font-size:12px;font-weight:700;}
+.tag-pill button{background:none;border:none;color:inherit;opacity:.6;cursor:pointer;font-size:11px;padding:2px;}
+.picker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.picker-head label{margin-bottom:0;}
+.mini-btn{border:none;background:var(--bg);color:var(--ink2);font-size:11px;font-weight:800;padding:6px 11px;border-radius:var(--r-pill);cursor:pointer;font-family:inherit;}
+.mini-btn.active{background:var(--mint);color:#fff;}
+.pick-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.pick-btn{padding:9px 15px;border-radius:var(--r-pill);border:1.5px solid var(--line);background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+.pick-btn.picked{background:var(--mint);border-color:var(--mint);color:#fff;}
+.pick-btn.cat.picked{background:var(--cat);border-color:var(--cat);color:#fff;}
+.add-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
+.btn-ghost{padding:11px 17px;border-radius:var(--r-pill);border:none;background:var(--bg);color:var(--ink2);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;}
+.btn-solid{padding:11px 20px;border-radius:var(--r-pill);border:none;background:var(--p);color:#fff;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 6px 16px rgba(108,76,241,.35);}
+.btn-solid:disabled{opacity:.5;}
+.btn-danger{padding:11px 17px;border-radius:var(--r-pill);border:none;background:var(--red-soft);color:var(--red);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;}
+
+/* ---- Video card ---- */
+.card{border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;}
+.thumb{position:relative;aspect-ratio:16/9;background:#111;overflow:hidden;}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb .cats{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap;}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-pill);background:rgba(255,255,255,.92);color:var(--cat);font-size:10.5px;font-weight:800;backdrop-filter:blur(4px);}
+.cat-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--cat);}
+.thumb a.play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 50%);}
+.thumb .play svg{width:46px;height:46px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));}
+.card-body{padding:16px 18px 18px;}
+.card-title{font-size:15.5px;font-weight:800;margin:0 0 6px;line-height:1.4;}
+.card-title a{color:var(--ink);text-decoration:none;}
+.card-meta{font-size:11.5px;color:var(--ink3);font-weight:600;margin-bottom:12px;}
+.sec{padding-top:12px;margin-top:12px;border-top:1px solid var(--line);}
+.sec-label{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--ink3);text-transform:uppercase;margin-bottom:9px;}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.row-flex{display:flex;flex-wrap:wrap;gap:6px;}
+.member-badge{display:inline-flex;padding:6px 13px;border-radius:var(--r-pill);background:var(--p-soft);color:var(--p);font-size:12px;font-weight:700;}
+.sched-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:var(--r-pill);background:var(--bg);color:var(--ink);font-size:12px;font-weight:700;border:1px solid var(--line);}
+.sched-pill.editing{padding:5px 5px 5px 12px;}
+.sched-pill.match{background:var(--amber);color:#fff;border-color:var(--amber);}
+.sched-pill mark{background:#FFE49C;color:var(--ink);border-radius:3px;padding:0 2px;}
+.sched-pill button{background:none;border:none;color:inherit;opacity:.55;cursor:pointer;font-size:10.5px;padding:2px;}
+.add-sched{display:flex;gap:8px;margin-top:10px;}
+.add-sched input{flex:1;border:1.5px solid var(--line);border-radius:var(--r-sm);color:var(--ink);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;background:var(--bg);}
+.add-sched button{background:var(--ink);border:none;color:#fff;border-radius:var(--r-sm);padding:10px 15px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;}
+.empty-txt{color:var(--ink3);font-size:12.5px;}
+.card-actions{display:flex;gap:8px;margin-top:14px;}
+.card-actions button{flex:1;border:none;padding:10px;border-radius:var(--r-sm);font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;background:var(--bg);color:var(--ink2);}
+.card-actions button.primary{background:var(--p);color:#fff;}
+.card-actions button.danger{background:var(--red-soft);color:var(--red);}
+.title-edit{width:100%;padding:10px 12px;border:1.5px solid var(--p);border-radius:var(--r-sm);font-size:14px;font-family:inherit;margin-bottom:2px;}
+
+.empty{text-align:center;padding:70px 20px;color:var(--ink3);}
+.empty .ic{width:56px;height:56px;border-radius:50%;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.empty h3{color:var(--ink);font-weight:800;margin:0 0 6px;font-size:16px;}
+.empty p{font-size:13px;margin:0;}
+
+/* ---- Bottom nav ---- */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;pointer-events:none;}
+.bottomnav-inner{pointer-events:auto;max-width:480px;width:calc(100% - 32px);margin-bottom:16px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-radius:24px;box-shadow:0 10px 30px rgba(30,20,60,.14);display:flex;padding:8px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;border:none;background:none;color:var(--ink3);font-size:10.5px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:16px;transition:all .15s;}
+.nav-btn svg{width:20px;height:20px;}
+.nav-btn.active{color:var(--p);background:var(--p-soft);}
+.memberpage{position:fixed;inset:0;z-index:80;background:var(--bg);max-width:520px;margin:0 auto;display:none;overflow-y:auto;}
+.memberpage.open{display:block;}
+.memberpage-head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:14px 20px;font-weight:800;font-size:16px;z-index:2;}
+.memberpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px;padding:10px 16px 40px;}
+.member-card{background:none;box-shadow:none;border:none;cursor:pointer;text-align:center;padding:0;}
+.member-photo{width:64px;height:64px;margin:0 auto;border-radius:50%;background:var(--p-soft);display:flex;align-items:center;justify-content:center;color:var(--ink3);overflow:hidden;}
+.member-card.active .member-photo{background:var(--p-soft);box-shadow:0 0 0 3px var(--p);color:var(--p);}
+.member-photo svg{width:26px;height:26px;}
+.member-card .m-name{margin-top:7px;font-size:12px;font-weight:800;}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+.sched-lang-row{display:flex;gap:9px;align-items:center;margin-bottom:8px;}
+.sched-lang-row .lang-tag{width:30px;height:30px;flex-shrink:0;font-size:10px;font-weight:800;color:var(--p);background:var(--p-soft);border-radius:9px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;}
+.sched-lang-row input{flex:1;padding:11px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;}
+.sched-lang-row input:focus{border-color:var(--p);background:var(--surface);}
+@media(max-width:600px){input,select,textarea{font-size:16px !important;}}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top">
-  <div class="logo">logbook.zip</div>
-  <div class="search"><input id="q" placeholder="제목, 스케줄, 멤버, 검색어로 검색"><button onclick="runSearch()">검색</button></div>
-  <div class="chips" id="langChips"></div>
-  <div class="chips" id="memberChips"></div>
-</header>
-<section class="admin" id="adminPanel">
-  <div class="field"><label>연도</label><input id="year" inputmode="numeric" placeholder="2021"></div>
-  <div class="field"><label>제목</label><input id="title"></div>
-  <div class="field"><label>YouTube URL</label><input id="youtube"></div>
-  <div class="field"><label>나라</label><input id="country" placeholder="한국, 미국, 일본"></div>
-  <div class="field"><label>카테고리</label><input id="category" placeholder="공연, 방송, 인터뷰"></div>
-  <div class="field"><label>멤버</label><input id="members" placeholder="홍중, 성화, 윤호"></div>
-  <div class="field"><label>스케줄</label><textarea id="schedules" placeholder="한국어: 미국 LA 댄스 연습\n영어: LA dance practice\n중국어: 美国 LA 舞蹈练习\n일본어: アメリカ LA ダンス練習"></textarea></div>
-  <div class="field"><label>숨겨진 검색어</label><textarea id="keywords" placeholder="쉼표 또는 줄바꿈으로 구분"></textarea></div>
-  <div class="actions"><button class="btn danger" onclick="clearForm()">초기화</button><button class="btn" onclick="saveVideo()">저장</button></div>
-</section>
-<main class="content"><div id="list"></div></main>
+  <div class="topbar" id="topbar">
+    <div class="topbar-row">
+      <div class="logo"><span class="dot"></span>logbook.zip</div>
+      <div style="display:flex;gap:8px;">
+        <button class="icon-btn" id="adminBtn" onclick="toggleAdmin()" title="admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <h1 class="hdr-title" id="pageTitle">영상 아카이브</h1>
+    <div class="search-shell">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="멤버 또는 스케줄로 검색…" oninput="localStorage.setItem('searchQuery',this.value);render()" onkeydown="if(event.key==='Enter'){event.preventDefault();render();}">
+      <button class="go" onclick="render()" id="searchBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="chip-row" id="langRow"></div>
+    <div class="chip-row wrap" id="sortRow" style="padding-top:2px;margin-top:2px;"></div>
+  </div>
+
+  <div class="content">
+    <div class="stat-strip" id="statStrip"></div>
+
+    <div class="add-card" id="addBoxCard">
+      <div class="add-head" id="addHead" onclick="toggleAddBox()"><span class="plus">+</span><span id="addSummary">새 영상 등록하기</span></div>
+      <div class="add-body" id="addBody">
+        <div class="field">
+          <label id="urlLabel">유튜브 링크</label>
+          <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." onpaste="setTimeout(fetchTitleForDraft,50)" onblur="fetchTitleForDraft()" onkeydown="if(event.key==='Enter'){event.preventDefault();fetchTitleForDraft();}">
+          <div class="field-hint" id="fetchStatus">링크를 입력하면 제목을 자동으로 가져와요.</div>
+        </div>
+        <div class="field">
+          <label id="yearLabel">업로드 연도</label>
+          <input type="number" id="yearInput" placeholder="예: 2024" min="2000" max="2100">
+          <div class="field-hint" id="yearHint">유튜브 자동 감지가 불가능한 경우 직접 입력해주세요.</div>
+        </div>
+        <div class="field">
+          <label id="titleLabel">제목 (언어별 입력 가능)</label>
+          <input type="text" id="titleInput_ko" placeholder="한국어">
+          <input type="text" id="titleInput_en" placeholder="English">
+          <input type="text" id="titleInput_zh" placeholder="中文">
+          <input type="text" id="titleInput_ja" placeholder="日本語">
+        </div>
+        <div class="field">
+          <div class="picker-head"><label id="memberLabel">출연 멤버</label>
+            <button type="button" class="mini-btn" id="selectAllBtn" onclick="toggleSelectAllDraft()">전체선택</button>
+          </div>
+          <div class="pick-grid" id="draftMemberGrid"></div>
+        </div>
+        <div class="field">
+          <label id="catLabel">카테고리</label>
+          <div class="pick-grid" id="draftCatGrid"></div>
+        </div>
+        <div class="field">
+          <label id="countryLabel">나라</label>
+          <div class="tag-input-row">
+            <input type="text" id="countryInput" placeholder="검색만 되고 화면엔 안 보여요" onkeydown="if(event.key==='Enter'){event.preventDefault();addCountryToDraft();}">
+            <button type="button" onclick="addCountryToDraft()" id="countryAddBtn">추가</button>
+          </div>
+          <div class="tag-list" id="draftCountryList"></div>
+          <div class="field-hint" id="countryHint">키워드처럼 검색에만 사용되고 카드에는 표시되지 않아요.</div>
+        </div>
+        <div class="field">
+          <label id="schedLabel2">스케줄</label>
+          <div class="field-hint" id="schedFixedHint">인기가요·뮤직뱅크·엠카운트다운·음악중심·더쇼는 한국어만 입력해도 자동 번역돼요.</div>
+          <div class="sched-lang-row"><span class="lang-tag">KO</span><input type="text" id="schedInput_ko" placeholder="한국어" onkeydown="if(event.key==='Enter'){event.preventDefault();addSchedToDraft();}"></div>
+          <div class="sched-lang-row"><span class="lang-tag">EN</span><input type="text" id="schedInput_en" placeholder="English" onkeydown="if(event.key==='Enter'){event.preventDefault();addSchedToDraft();}"></div>
+          <div class="sched-lang-row"><span class="lang-tag">ZH</span><input type="text" id="schedInput_zh" placeholder="中文" onkeydown="if(event.key==='Enter'){event.preventDefault();addSchedToDraft();}"></div>
+          <div class="sched-lang-row"><span class="lang-tag">JA</span><input type="text" id="schedInput_ja" placeholder="日本語" onkeydown="if(event.key==='Enter'){event.preventDefault();addSchedToDraft();}"></div>
+          <div class="add-actions" style="justify-content:flex-start;margin-top:2px;">
+            <button type="button" onclick="addSchedToDraft()" id="schedAddBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;">추가</button>
+          </div>
+          <div class="tag-list" id="draftSchedList"></div>
+        </div>
+        <div class="field">
+          <label id="kwLabel">숨겨진 검색어</label>
+          <div class="tag-input-row">
+            <input type="text" id="kwInput" placeholder="검색만 되고 화면엔 안 보여요" onkeydown="if(event.key==='Enter'){event.preventDefault();addKwToDraft();}">
+            <button type="button" onclick="addKwToDraft()" id="kwAddBtn">추가</button>
+          </div>
+          <div class="tag-list" id="draftKwList"></div>
+          <div class="field-hint" id="kwHint">여기 추가한 단어는 검색에는 걸리지만 카드에는 표시되지 않아요.</div>
+        </div>
+        <div class="add-actions">
+          <button class="btn-ghost" type="button" onclick="closeAddBox()" id="cancelBox">취소</button>
+          <button class="btn-solid" type="button" id="submitBtn" onclick="addVideo()">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="reelList"></div>
+  </div>
 </div>
+
+<div class="toast" id="toast">준비 중인 기능이에요</div>
+
+<div class="bottomnav"><div class="bottomnav-inner">
+  <button class="nav-btn active" id="navHome" onclick="setNav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span id="navHomeLabel">홈</span></button>
+  <button class="nav-btn" id="navMember" onclick="openMemberPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span id="navMemberLabel">멤버</span></button>
+</div></div>
+
+<div class="memberpage" id="memberPage">
+  <div class="memberpage-head">
+    <button class="icon-btn" onclick="closeMemberPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span id="memberPageTitle">멤버</span>
+    <span style="width:38px"></span>
+  </div>
+  <div class="memberpage-grid" id="memberPageGrid"></div>
+</div>
+
 <script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import {getFirestore,collection,onSnapshot,doc,setDoc,deleteDoc} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyCCHZTbWa4P8eqnrFAvbQNbD_REe7mbWFA',authDomain:'logbook-1314d.firebaseapp.com',projectId:'logbook-1314d',storageBucket:'logbook-1314d.firebasestorage.app',messagingSenderId:'717744229059',appId:'1:717744229059:web:2691b2d1ad18117a82f076'};
-const app=initializeApp(firebaseConfig);const db=getFirestore(app);const col=collection(db,'videos');
-let videos=[];let lang='ko';let members=new Set();let editing=null;let admin=false;
-const byLang=v=>typeof v==='string'?v:(v?.[lang]||v?.ko||v?.en||v?.zh||v?.ja||'');
-const arr=v=>Array.isArray(v)?v:(typeof v==='string'?v.split(/[\n,]/).map(x=>x.trim()).filter(Boolean):[]);
-function text(v){return Array.isArray(v)?v.join(' '):byLang(v)}
-function normalize(v){return String(v||'').toLowerCase()}
-function allMembers(){const s=new Set();videos.forEach(v=>arr(v.members||v.member).forEach(x=>s.add(x)));return [...s].sort()}
-function renderChips(){document.getElementById('langChips').innerHTML=['ko','en','zh','ja'].map(x=>`<button class="chip ${lang===x?'active':''}" onclick="window.setLang('${x}')">${{ko:'한국어',en:'English',zh:'中文',ja:'日本語'}[x]}</button>`).join('');document.getElementById('memberChips').innerHTML=allMembers().map(m=>`<button class="chip ${members.has(m)?'active':''}" onclick="window.toggleMember(${JSON.stringify(m)})">${m}</button>`).join('')}
-function matches(v){const q=normalize(document.getElementById('q').value);if(members.size&&!arr(v.members||v.member).some(m=>members.has(m)))return false;if(!q)return true;const hay=[v.title,v.year,v.country,v.category,v.youtube,v.url,v.keywords,v.hiddenKeywords,...arr(v.members||v.member),...Object.values(v.schedule||{}),...Object.values(v.schedules||{}),...Object.values(v.scheduleNames||{})].flat().map(normalize).join(' ');return hay.includes(q)}
-function render(){renderChips();const list=document.getElementById('list');const rows=videos.filter(matches).sort((a,b)=>Number(b.year||0)-Number(a.year||0));list.innerHTML=rows.length?rows.map(card).join(''):`<div class="empty">등록된 영상이 없어.</div>`}
-function card(v){const yt=v.youtube||v.url||v.youtubeUrl||'';const thumb=yt.includes('youtu')?`https://i.ytimg.com/vi/${getYt(yt)}/hqdefault.jpg`:'';const schedules=v.schedule||v.schedules||{};const sched=[...arr(schedules.ko),...arr(schedules.en),...arr(schedules.zh),...arr(schedules.ja)];return `<article class="card"><div class="thumb">${thumb?`<a href="${yt}" target="_blank" rel="noopener"><img src="${thumb}" loading="lazy"></a>`:''}</div><div class="body"><div class="title">${esc(v.title||'')}</div><div class="meta">${esc(v.year||'')} ${v.country?'· '+esc(v.country):''} ${v.category?'· '+esc(v.category):''}</div>${arr(v.members||v.member).length?`<div class="section"><div class="label">MEMBERS</div><div class="pills">${arr(v.members||v.member).map(m=>`<span class="pill">${esc(m)}</span>`).join('')}</div></div>`:''}${sched.length?`<div class="section"><div class="label">SCHEDULE</div><div class="pills">${sched.map(s=>`<span class="pill">${esc(s)}</span>`).join('')}</div></div>`:''}</div></article>`}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function getYt(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{6,})/);return m?m[1]:''}
-window.setLang=x=>{lang=x;render()};window.toggleMember=m=>{members.has(m)?members.delete(m):members.add(m);render()};window.runSearch=render;document.getElementById('q').addEventListener('input',render);
-window.clearForm=()=>{['year','title','youtube','country','category','members','schedules','keywords'].forEach(id=>document.getElementById(id).value='');editing=null};
-window.saveVideo=async()=>{const id=editing||crypto.randomUUID();const v={year:document.getElementById('year').value.trim(),title:document.getElementById('title').value.trim(),youtube:document.getElementById('youtube').value.trim(),country:document.getElementById('country').value.split(',').map(x=>x.trim()).filter(Boolean).join(', '),category:document.getElementById('category').value.split(',').map(x=>x.trim()).filter(Boolean).join(', '),members:arr(document.getElementById('members').value),keywords:arr(document.getElementById('keywords').value)};const raw=document.getElementById('schedules').value.split(/\n/);const schedules={ko:[],en:[],zh:[],ja:[]};let current=null;for(const line of raw){const m=line.match(/^\s*(한국어|영어|중국어|일본어)\s*:\s*(.*)$/);if(m){current={한국어:'ko',영어:'en',중국어:'zh',일본어:'ja'}[m[1]];if(m[2].trim())schedules[current].push(m[2].trim())}else if(line.trim()&&current)schedules[current].push(line.trim())}v.schedules=schedules;await setDoc(doc(col,id),v,{merge:true});clearForm();admin=false;document.getElementById('adminPanel').classList.remove('open')};
-window.openAdmin=()=>{admin=!admin;document.getElementById('adminPanel').classList.toggle('open',admin)};
-window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a'){e.preventDefault();window.openAdmin()}});
-onSnapshot(col,s=>{videos=s.docs.map(d=>({id:d.id,...d.data()}));render()});
-window.openAdmin=()=>{admin=!admin;document.getElementById('adminPanel').classList.toggle('open',admin)};
-render();
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCCHZTbWa4P8eqnrFAvbQNBd_REe7mbWFA",
+  authDomain:"logbook-1314d.firebaseapp.com",
+  projectId:"logbook-1314d",
+  storageBucket:"logbook-1314d.firebasestorage.app",
+  messagingSenderId:"717744229059",
+  appId:"1:717744229059:web:2691b2d1ad18117a82f076"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const videosCol = collection(db, "videos");
+const ATEEZ_MEMBERS = ['홍중','성화','윤호','여상','산','민기','우영','종호'];
+const MEMBER_I18N = {
+  ko:{'홍중':'홍중','성화':'성화','윤호':'윤호','여상':'여상','산':'산','민기':'민기','우영':'우영','종호':'종호'},
+  en:{'홍중':'Hongjoong','성화':'Seonghwa','윤호':'Yunho','여상':'Yeosang','산':'San','민기':'Mingi','우영':'Wooyoung','종호':'Jongho'},
+  zh:{'홍중':'洪中','성화':'承铪','윤호':'允浩','여상':'汝尚','산':'珊','민기':'珉琪','우영':'又永','종호':'钟湖'},
+  ja:{'홍중':'ホンジュン','성화':'ソンファ','윤호':'ユンホ','여상':'ヨサン','산':'サン','민기':'ミンギ','우영':'ウヨン','종호':'ジョンホ'}
+};
+function mName(m){ return (MEMBER_I18N[lang]&&MEMBER_I18N[lang][m]) || m; }
+const FIXED_SCHED = {
+  ko:['인기가요','뮤직뱅크','엠카운트다운','음악중심','더쇼'],
+  en:['INKIGAYO','Music Bank','M COUNTDOWN','Show! Music Core','THE SHOW'],
+  zh:['人气歌谣','音乐银行','M COUNTDOWN','Show! 音乐中心','THE SHOW'],
+  ja:['人気歌謡','ミュージックバンク','エムカウントダウン','ショー！音楽中心','THE SHOW']
+};
+function schedLangText(k){
+  if(typeof k === 'string') return k;
+  if(k && typeof k === 'object'){
+    const v = (k[lang]||'').toString().trim();
+    return v ? v : null;
+  }
+  return null;
+}
+function tr(x){
+  if(typeof x === 'string') return x;
+  if(x && typeof x === 'object' && !Array.isArray(x)) return x[lang] || '';
+  return pickLang(x);
+}
+let sortOrder = localStorage.getItem('sortOrder') || 'newest';
+const LANG_CODES = ['ko','en','zh','ja'];
+function pickLang(obj){
+  if(typeof obj === 'string') return obj;
+  if(!obj) return '';
+  return obj[lang] || obj.ko || obj.en || obj.zh || obj.ja || '';
+}
+function normalizeKw(obj){
+  if(Array.isArray(obj)) return {ko:[...obj],en:[],zh:[],ja:[]};
+  return {ko:obj?.ko||[],en:obj?.en||[],zh:obj?.zh||[],ja:obj?.ja||[]};
+}
+const SORT_I18N = { ko:['최신순','오래된순'], en:['Newest','Oldest'], zh:['最新','最旧'], ja:['新しい順','古い順'] };
+function setSort(o){ sortOrder = o; localStorage.setItem('sortOrder', o); renderSortRow(); render(); }
+function renderSortRow(){
+  const [a,b] = SORT_I18N[lang];
+  document.getElementById('sortRow').innerHTML =
+    `<button class="chip ${sortOrder==='newest'?'active':''}" onclick="setSort('newest')">${a}</button>`+
+    `<button class="chip ${sortOrder==='oldest'?'active':''}" onclick="setSort('oldest')">${b}</button>`;
+}
+function norm(s){ return (s||'').toString().toLowerCase().replace(/\s+/g,''); }
+const CATEGORIES = ['concert','show','photobook','behind','musicshow','event','offline','etc'];
+const ADMIN_PW = 'ateez1004';
+
+let videos = [];
+let activeMembers = new Set(JSON.parse(localStorage.getItem('activeMembers')||'[]'));
+function saveActiveMembers(){ localStorage.setItem('activeMembers', JSON.stringify([...activeMembers])); }
+let draftMembers = [], draftSched = [], draftKw = {ko:[],en:[],zh:[],ja:[]}, draftCategories = [], draftCountries = [], lastFetchedUrl = '';
+let isAdmin = sessionStorage.getItem('isAdmin') === '1';
+let editingId = null, editDraft = null, savingId = null, flashId = null, schedEditIdx = null;
+let lang = localStorage.getItem('lang') || 'ko';
+let navState = localStorage.getItem('navState') || 'home';
+
+const LANGS = [['ko','한국어'],['en','English'],['zh','中文'],['ja','日本語']];
+const I18N = {
+  ko:{title:'영상 아카이브',sub:'유튜브 링크를 등록하고 출연 멤버와 스케줄로 정리해보세요.',adminOn:'관리자 모드 끄기',adminOff:'관리자 모드',searchPh:'멤버 또는 스케줄로 검색…',searchBtn:'검색',addSummary:'새 영상 등록하기',urlLabel:'유튜브 링크',fetchDefault:'링크를 입력하면 제목을 자동으로 가져와요.',fetching:'제목을 가져오는 중…',fetched:'제목을 가져왔어요. 다르면 직접 수정해주세요.',fetchFail:'제목을 자동으로 가져오지 못했어요. 직접 입력해주세요.',titleLabel:'제목 (필요하면 수정 가능)',memberLabel:'출연 멤버',selectAll:'전체선택',deselectAll:'전체해제',schedLabel:'스케줄',add:'추가',kwLabel:'숨겨진 검색어',kwPh:'검색만 되고 화면엔 안 보여요',kwHint:'여기 추가한 단어는 검색에는 걸리지만 카드에는 표시되지 않아요.',cancel:'취소',submit:'등록',submitting:'등록 중…',noMembers:'아직 등록된 멤버가 없어요',statLine:(v,s,m)=>[[v,'영상'],[s,'스케줄'],[m,'멤버']],emptyNoVideoTitle:'아직 등록된 영상이 없어요',emptyNoVideoDesc:'관리자 모드를 켜고 첫 영상을 등록해보세요.',emptyNoResultTitle:'검색 결과가 없어요',emptyNoResultDesc:'다른 조건으로 다시 검색해보세요.',memberSection:'출연 멤버',schedSection:'스케줄',metaLine:(s,m)=>`스케줄 ${s}개 · 출연 ${m}명`,metaLineMember:(m)=>`출연 ${m}명`,noMemberOnCard:'등록된 멤버가 없습니다.',noSchedOnCard:'등록된 스케줄이 없습니다.',schedPhEdit:'스케줄 입력…',save:'저장',cancelEdit:'취소',edit:'수정',del:'삭제',delConfirm:'이 영상을 삭제할까요?',pwPrompt:'관리자 비밀번호를 입력하세요',pwWrong:'비밀번호가 올바르지 않아요.',invalidUrl:'유효한 유튜브 링크를 입력해주세요.',noTitle:id=>'(제목 없음 · '+id+')',saveFail:m=>'저장에 실패했어요: '+m,delFail:m=>'삭제에 실패했어요: '+m,loadFail:m=>'데이터를 불러오지 못했어요: '+m,saving:'저장 중…',countryLabel:'나라',countryHint:'키워드처럼 검색에만 사용되고 카드에는 표시되지 않아요.',catLabel:'카테고리',cats:{concert:'콘서트',show:'행사',photobook:'화보',behind:'비하인드',musicshow:'음악방송',event:'팬사인회',offline:'오프라인 이벤트',etc:'기타'}},
+  en:{title:'Video Archive',sub:'Register YouTube links and organize them by member and schedule.',adminOn:'Exit Admin Mode',adminOff:'Admin Mode',searchPh:'Search by member or schedule…',searchBtn:'Search',addSummary:'Add New Video',urlLabel:'YouTube Link',fetchDefault:'Paste a link to auto-fill the title.',fetching:'Fetching title…',fetched:'Title fetched. Edit if needed.',fetchFail:'Could not auto-fetch title.',titleLabel:'Title',memberLabel:'Featured Members',selectAll:'Select All',deselectAll:'Deselect All',schedLabel:'Schedule',add:'Add',kwLabel:'Hidden Keywords',kwPh:'Searchable but not shown',kwHint:'Words added here are searchable but not displayed.',cancel:'Cancel',submit:'Add',submitting:'Adding…',noMembers:'No members registered yet',statLine:(v,s,m)=>[[v,'Videos'],[s,'Schedules'],[m,'Members']],emptyNoVideoTitle:'No videos yet',emptyNoVideoDesc:'Turn on admin mode and add your first video.',emptyNoResultTitle:'No results found',emptyNoResultDesc:'Try a different search.',memberSection:'Featured Members',schedSection:'Schedule',metaLine:(s,m)=>`${s} schedules · ${m} members`,metaLineMember:(m)=>`${m} members`,noMemberOnCard:'No members registered.',noSchedOnCard:'No schedules registered.',schedPhEdit:'Type a schedule…',save:'Save',cancelEdit:'Cancel',edit:'Edit',del:'Delete',delConfirm:'Delete this video?',pwPrompt:'Enter admin password',pwWrong:'Incorrect password.',invalidUrl:'Please enter a valid YouTube link.',noTitle:id=>'(No title · '+id+')',saveFail:m=>'Save failed: '+m,delFail:m=>'Delete failed: '+m,loadFail:m=>'Failed to load: '+m,saving:'Saving…',countryLabel:'Country',countryHint:'Used for search only, not shown on the card.',catLabel:'Category',cats:{concert:'Concert',show:'Show',photobook:'Photobook',behind:'Behind',musicshow:'Music Show',event:'Fan Sign',offline:'Offline Event',etc:'Other'}},
+  zh:{title:'视频档案',sub:'注册YouTube链接，按出演成员和日程整理。',adminOn:'退出管理模式',adminOff:'管理模式',searchPh:'按成员或日程搜索…',searchBtn:'搜索',addSummary:'添加新视频',urlLabel:'YouTube链接',fetchDefault:'输入链接后自动获取标题。',fetching:'正在获取标题…',fetched:'已获取标题。',fetchFail:'未能自动获取标题。',titleLabel:'标题',memberLabel:'出演成员',selectAll:'全选',deselectAll:'取消全选',schedLabel:'日程',add:'添加',kwLabel:'隐藏搜索词',kwPh:'仅用于搜索，不会显示',kwHint:'仅可搜索，不会显示在卡片上。',cancel:'取消',submit:'添加',submitting:'添加中…',noMembers:'尚未注册成员',statLine:(v,s,m)=>[[v,'视频'],[s,'日程'],[m,'成员']],emptyNoVideoTitle:'还没有视频',emptyNoVideoDesc:'开启管理模式并添加第一个视频。',emptyNoResultTitle:'没有搜索结果',emptyNoResultDesc:'请尝试其他搜索条件。',memberSection:'出演成员',schedSection:'日程',metaLine:(s,m)=>`日程 ${s}个 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'暂无注册成员。',noSchedOnCard:'暂无注册日程。',schedPhEdit:'输入日程…',save:'保存',cancelEdit:'取消',edit:'编辑',del:'删除',delConfirm:'要删除这个视频吗？',pwPrompt:'请输入管理员密码',pwWrong:'密码不正确。',invalidUrl:'请输入有效的YouTube链接。',noTitle:id=>'(无标题 · '+id+')',saveFail:m=>'保存失败: '+m,delFail:m=>'删除失败: '+m,loadFail:m=>'加载失败: '+m,saving:'保存中…',countryLabel:'国家',countryHint:'仅用于搜索，不会显示。',catLabel:'分类',cats:{concert:'演唱会',show:'公演',photobook:'画报',behind:'幕后',musicshow:'音乐节目',event:'粉丝签名会',offline:'线下活动',etc:'其他'}},
+  ja:{title:'動画アーカイブ',sub:'YouTubeリンクを登録し、出演メンバーとスケジュールで整理しましょう。',adminOn:'管理者モード終了',adminOff:'管理者モード',searchPh:'メンバーまたはスケジュールで検索…',searchBtn:'検索',addSummary:'新しい動画を登録',urlLabel:'YouTubeリンク',fetchDefault:'リンクを入力すると自動でタイトルを取得します。',fetching:'タイトルを取得中…',fetched:'タイトルを取得しました。',fetchFail:'タイトルを自動取得できませんでした。',titleLabel:'タイトル',memberLabel:'出演メンバー',selectAll:'全選択',deselectAll:'全解除',schedLabel:'スケジュール',add:'追加',kwLabel:'非表示検索ワード',kwPh:'検索のみ・画面には表示されません',kwHint:'カードには表示されません。',cancel:'キャンセル',submit:'登録',submitting:'登録中…',noMembers:'まだ登録されたメンバーがいません',statLine:(v,s,m)=>[[v,'動画'],[s,'スケジュール'],[m,'メンバー']],emptyNoVideoTitle:'まだ動画がありません',emptyNoVideoDesc:'管理者モードをオンにして最初の動画を登録してください。',emptyNoResultTitle:'検索結果がありません',emptyNoResultDesc:'別の条件で検索してみてください。',memberSection:'出演メンバー',schedSection:'スケジュール',metaLine:(s,m)=>`スケジュール ${s}件 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'登録されたメンバーがいません。',noSchedOnCard:'登録されたスケジュールがありません。',schedPhEdit:'スケジュールを入力…',save:'保存',cancelEdit:'キャンセル',edit:'編集',del:'削除',delConfirm:'この動画を削除しますか？',pwPrompt:'管理者パスワードを入力してください',pwWrong:'パスワードが正しくありません。',invalidUrl:'有効なYouTubeリンクを入力してください。',noTitle:id=>'(タイトルなし · '+id+')',saveFail:m=>'保存に失敗しました: '+m,delFail:m=>'削除に失敗しました: '+m,loadFail:m=>'読み込みに失敗しました: '+m,saving:'保存中…',countryLabel:'国',countryHint:'カードには表示されません。',catLabel:'カテゴリー',cats:{concert:'コンサート',show:'公演',photobook:'グラビア',behind:'ビハインド',musicshow:'音楽番組',event:'ファンサイン会',offline:'オフラインイベント',etc:'その他'}}
+};
+const COUNTRY_I18N = {
+  ko:['한국','일본','중국','대만','홍콩','마카오','미국','캐나다','영국','프랑스','독일','이탈리아','스페인','러시아','호주','뉴질랜드','태국','베트남','필리핀','인도네시아','말레이시아','싱가포르','인도','브라질','멕시코','사우디아라비아','아랍에미리트',
+    '서울','인천','부산','대구','대전','광주','청담','강남','홍대','제주',
+    '도쿄','오사카','나고야','고베','사이타마','치바','후쿠오카','요코하마',
+    '뉴욕','로스앤젤레스','시카고','애틀랜타','볼티모어','내슈빌','올랜도','타코마','산호세','글렌데일','알링턴','멕시코시티','댈러스','휴스턴','워싱턴DC','뉴어크','토론토','밴쿠버',
+    '런던','파리','베를린','암스테르담','바르셀로나','밀라노'],
+  en:['Korea','Japan','China','Taiwan','Hong Kong','Macau','USA','Canada','UK','France','Germany','Italy','Spain','Russia','Australia','New Zealand','Thailand','Vietnam','Philippines','Indonesia','Malaysia','Singapore','India','Brazil','Mexico','Saudi Arabia','UAE',
+    'Seoul','Incheon','Busan','Daegu','Daejeon','Gwangju','Cheongdam','Gangnam','Hongdae','Jeju',
+    'Tokyo','Osaka','Nagoya','Kobe','Saitama','Chiba','Fukuoka','Yokohama',
+    'New York','Los Angeles','Chicago','Atlanta','Baltimore','Nashville','Orlando','Tacoma','San Jose','Glendale','Arlington','Mexico City','Dallas','Houston','Washington D.C.','Newark','Toronto','Vancouver',
+    'London','Paris','Berlin','Amsterdam','Barcelona','Milan'],
+  zh:['韩国','日本','中国','台湾','香港','澳门','美国','加拿大','英国','法国','德国','意大利','西班牙','俄罗斯','澳大利亚','新西兰','泰国','越南','菲律宾','印度尼西亚','马来西亚','新加坡','印度','巴西','墨西哥','沙特阿拉伯','阿联酋',
+    '首尔','仁川','釜山','大邱','大田','光州','清潭','江南','弘大','济州',
+    '东京','大阪','名古屋','神户','埼玉','千叶','福冈','横滨',
+    '纽约','洛杉矶','芝加哥','亚特兰大','巴尔的摩','纳什维尔','奥兰多','塔科马','圣何塞','格伦代尔','阿灵顿','墨西哥城','达拉斯','休斯顿','华盛顿','纽瓦克','多伦多','温哥华',
+    '伦敦','巴黎','柏林','阿姆斯特丹','巴塞罗那','米兰'],
+  ja:['韓国','日本','中国','台湾','香港','マカオ','アメリカ','カナダ','イギリス','フランス','ドイツ','イタリア','スペイン','ロシア','オーストラリア','ニュージーランド','タイ','ベトナム','フィリピン','インドネシア','マレーシア','シンガポール','インド','ブラジル','メキシコ','サウジアラビア','アラブ首長国連邦',
+    'ソウル','仁川','釜山','テグ','テジョン','クァンジュ','清潭','江南','弘大','チェジュ',
+    '東京','大阪','名古屋','神戸','埼玉','千葉','福岡','横浜',
+    'ニューヨーク','ロサンゼルス','シカゴ','アトランタ','ボルチモア','ナッシュビル','オーランド','タコマ','サンノゼ','グレンデール','アーリントン','メキシコシティ','ダラス','ヒューストン','ワシントンD.C.','ニューアーク','トロント','バンクーバー',
+    'ロンドン','パリ','ベルリン','アムステルダム','バルセロナ','ミラノ']
+};
+function countryIdx(str){ const s=(str||'').trim(); return COUNTRY_I18N.ko.findIndex(k=>k===s); }
+function translateCountry(str){
+  const i = countryIdx(str);
+  return i===-1 ? str : COUNTRY_I18N[lang][i];
+}
+function countryMatchesQuery(str, nq){
+  const i = countryIdx(str);
+  if(i===-1) return norm(str).includes(nq);
+  return ['ko','en','zh','ja'].some(l=>norm(COUNTRY_I18N[l][i]).includes(nq));
+}
+const NAV_I18N = { ko:{home:'홈',member:'멤버'}, en:{home:'Home',member:'Member'}, zh:{home:'首页',member:'成员'}, ja:{home:'ホーム',member:'メンバー'} };
+const YEAR_I18N = {
+  ko:{label:'업로드 연도',hint:'유튜브 자동 감지가 불가능한 경우 직접 입력해주세요.'},
+  en:{label:'Upload Year',hint:'Enter manually if auto-detect is unavailable.'},
+  zh:{label:'上传年份',hint:'无法自动检测时请手动输入。'},
+  ja:{label:'アップロード年',hint:'自動検出できない場合は直接入力してください。'}
+};
+const SCHED_HINT_I18N = {
+  ko:'각 칸에 입력한 내용은 해당 언어에서만 그대로 표시돼요. 자동 번역되지 않아요.',
+  en:'What you type in each box is shown only in that language, exactly as entered. No auto-translation.',
+  zh:'每个输入框的内容只会原样显示在对应语言中，不会自动翻译。',
+  ja:'各欄に入力した内容はその言語にのみ、そのまま表示されます。自動翻訳はされません。'
+};
+function t(k){ return I18N[lang][k]; }
+function setLang(l){ lang=l; localStorage.setItem('lang',l); applyStaticText(); render(); }
+function renderLangRow(){
+  document.getElementById('langRow').innerHTML = LANGS.map(([code,label])=>
+    `<button class="chip ${lang===code?'active':''}" onclick="setLang('${code}')">${label}</button>`).join('');
+}
+function applyStaticText(){
+  document.getElementById('pageTitle').textContent = t('title');
+  document.getElementById('adminBtn').classList.toggle('on', isAdmin);
+  document.getElementById('searchInput').placeholder = t('searchPh');
+  document.getElementById('addSummary').textContent = t('addSummary');
+  document.getElementById('urlLabel').textContent = t('urlLabel');
+  if(!lastFetchedUrl) document.getElementById('fetchStatus').textContent = t('fetchDefault');
+  document.getElementById('titleLabel').textContent = t('titleLabel');
+  document.getElementById('memberLabel').textContent = t('memberLabel');
+  document.getElementById('schedLabel2').textContent = t('schedLabel');
+  document.getElementById('schedAddBtn').textContent = t('add');
+  document.getElementById('kwLabel').textContent = t('kwLabel');
+  document.getElementById('kwInput').placeholder = t('kwPh');
+  document.getElementById('kwAddBtn').textContent = t('add');
+  document.getElementById('kwHint').textContent = t('kwHint');
+  document.getElementById('catLabel').textContent = t('catLabel');
+  document.getElementById('countryLabel').textContent = t('countryLabel');
+  document.getElementById('countryInput').placeholder = t('countryHint');
+  document.getElementById('countryAddBtn').textContent = t('add');
+  document.getElementById('countryHint').textContent = t('countryHint');
+  document.getElementById('cancelBox').textContent = t('cancel');
+  document.getElementById('submitBtn').textContent = t('submit');
+  document.getElementById('schedFixedHint').textContent = SCHED_HINT_I18N[lang];
+  document.getElementById('yearLabel').textContent = YEAR_I18N[lang].label;
+  document.getElementById('yearHint').textContent = YEAR_I18N[lang].hint;
+  document.getElementById('navHomeLabel').textContent = NAV_I18N[lang].home;
+  document.getElementById('navMemberLabel').textContent = NAV_I18N[lang].member;
+  document.getElementById('memberPageTitle').textContent = NAV_I18N[lang].member;
+  renderLangRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
+  renderMemberPage();
+}
+
+function splitTags(raw){
+  return [...new Set(raw.split(',').map(s=>s.trim()).filter(Boolean))];
+}
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function parseYouTubeId(url){
+  try{
+    const u = new URL(url.trim());
+    if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    if(u.searchParams.get('v')) return u.searchParams.get('v');
+    const m = u.pathname.match(/\/embed\/([\w-]+)/);
+    if(m) return m[1];
+  }catch(e){}
+  return null;
+}
+function subscribeVideos(){
+  onSnapshot(videosCol, (snap)=>{
+    videos = snap.docs.map(d=>d.data()).sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));
+    render();
+  }, (err)=>{ console.error(err); alert(t('loadFail')(err.message)); });
+}
+async function saveVideoDoc(v){ try{ await setDoc(doc(db,"videos",v.id), v); } catch(e){ alert(t('saveFail')(e.message)); } }
+async function deleteVideoDoc(id){ try{ await deleteDoc(doc(db,"videos",id)); } catch(e){ alert(t('delFail')(e.message)); } }
+
+function toggleAdmin(){
+  isAdmin = !isAdmin;
+  if(!isAdmin){ editingId = null; editDraft = null; }
+  sessionStorage.setItem('isAdmin', isAdmin?'1':'0');
+  document.getElementById('adminBtn').classList.toggle('on', isAdmin);
+  document.getElementById('addBoxCard').style.display = isAdmin ? '' : 'none';
+  render();
+}
+function toggleAddBox(){
+  const body = document.getElementById('addBody'), head = document.getElementById('addHead');
+  const open = body.classList.toggle('open'); head.classList.toggle('open', open);
+}
+function guessYearFromTitle(title){
+  let m = title.match(/^(\d{2})(\d{2})(\d{2})\b/);
+  if(m){ const yy=+m[1]; return (yy<=50?2000:1900)+yy; }
+  m = title.match(/\b(20\d{2})\b/);
+  if(m) return +m[1];
+  return null;
+}
+async function fetchTitleForDraft(){
+  const url = document.getElementById('urlInput').value.trim();
+  const id = parseYouTubeId(url);
+  const statusEl = document.getElementById('fetchStatus');
+  if(!id || url===lastFetchedUrl) return;
+  lastFetchedUrl = url; statusEl.textContent = t('fetching');
+  try{
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v='+id)}&format=json`);
+    if(res.ok){ const data = await res.json(); if(data.title){ document.getElementById('titleInput_ko').value = data.title; statusEl.textContent=t('fetched');
+      const yEl = document.getElementById('yearInput');
+      if(!yEl.value){ const gy = guessYearFromTitle(data.title); if(gy) yEl.value = gy; }
+      return; } }
+    statusEl.textContent = t('fetchFail');
+  }catch(e){ statusEl.textContent = t('fetchFail'); }
+}
+function renderDraftMemberGrid(){
+  document.getElementById('draftMemberGrid').innerHTML = ATEEZ_MEMBERS.map(m=>
+    `<button type="button" class="pick-btn ${draftMembers.includes(m)?'picked':''}" onclick="toggleDraftMember('${m}')">${mName(m)}</button>`
+  ).join('');
+  const allBtn = document.getElementById('selectAllBtn');
+  const all = draftMembers.length===ATEEZ_MEMBERS.length;
+  allBtn.classList.toggle('active', all); allBtn.textContent = all?t('deselectAll'):t('selectAll');
+}
+function toggleDraftMember(name){ draftMembers = draftMembers.includes(name) ? draftMembers.filter(m=>m!==name) : [...draftMembers,name]; renderDraftMemberGrid(); }
+function renderDraftCat(){
+  document.getElementById('draftCatGrid').innerHTML = CATEGORIES.map(c=>
+    `<button type="button" class="pick-btn cat ${draftCategories.includes(c)?'picked':''}" onclick="toggleDraftCategory('${c}')">${t('cats')[c]}</button>`
+  ).join('');
+}
+function toggleDraftCategory(c){ draftCategories = draftCategories.includes(c) ? draftCategories.filter(x=>x!==c) : [...draftCategories,c]; renderDraftCat(); }
+function toggleSelectAllDraft(){ draftMembers = draftMembers.length===ATEEZ_MEMBERS.length ? [] : [...ATEEZ_MEMBERS]; renderDraftMemberGrid(); }
+function splitSchedCell(raw){ return raw.split(',').map(s=>s.trim()).filter(Boolean); }
+function buildSchedEntries(){
+  const arrs = {}; LANG_CODES.forEach(c=>{ arrs[c] = splitSchedCell(document.getElementById('schedInput_'+c).value); });
+  const max = Math.max(0, ...LANG_CODES.map(c=>arrs[c].length));
+  const entries = [];
+  for(let i=0;i<max;i++){
+    const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
+    if(obj.ko || obj.en || obj.zh || obj.ja) entries.push(obj);
+  }
+  return entries;
+}
+function addSchedToDraft(){
+  const entries = buildSchedEntries();
+  entries.forEach(obj=>{
+    const exists = draftSched.some(s=>LANG_CODES.every(c=>(s[c]||'')===(obj[c]||'')));
+    if(!exists) draftSched.push(obj);
+  });
+  LANG_CODES.forEach(c=>{ document.getElementById('schedInput_'+c).value=''; });
+  renderDraftSched(); document.getElementById('schedInput_ko').focus();
+}
+function removeDraftSched(idx){ draftSched.splice(idx,1); renderDraftSched(); }
+function addKwToDraft(){
+  const inp = document.getElementById('kwInput');
+  splitTags(inp.value).forEach(kw=>{ if(!draftKw[lang].includes(kw)) draftKw[lang].push(kw); });
+  inp.value=''; renderDraftKw(); inp.focus();
+}
+function removeDraftKw(kw){ draftKw[lang] = draftKw[lang].filter(k=>k!==kw); renderDraftKw(); }
+function addCountryToDraft(){
+  const inp = document.getElementById('countryInput');
+  splitTags(inp.value).forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
+  inp.value=''; renderDraftCountry(); inp.focus();
+}
+function removeDraftCountry(c){ draftCountries = draftCountries.filter(x=>x!==c); renderDraftCountry(); }
+function renderDraftCountry(){
+  document.getElementById('draftCountryList').innerHTML = draftCountries.map(c=>
+    `<span class="tag-pill">${escapeHtml(translateCountry(c))}<button onclick="removeDraftCountry('${c.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
+}
+function renderDraftKw(){
+  document.getElementById('draftKwList').innerHTML = draftKw[lang].map(k=>
+    `<span class="tag-pill">${escapeHtml(k)}<button onclick="removeDraftKw('${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
+}
+function renderDraftSched(){
+  document.getElementById('draftSchedList').innerHTML = draftSched.map((k,idx)=>
+    `<span class="tag-pill">${escapeHtml(pickLang(k)||k.ko||k.en||k.zh||k.ja)}<button onclick="removeDraftSched(${idx})">✕</button></span>`).join('');
+}
+function closeAddBox(){
+  document.getElementById('addBody').classList.remove('open');
+  document.getElementById('addHead').classList.remove('open');
+  document.getElementById('urlInput').value='';
+  ['ko','en','zh','ja'].forEach(c=>{ document.getElementById('titleInput_'+c).value=''; document.getElementById('schedInput_'+c).value=''; });
+  document.getElementById('kwInput').value=''; document.getElementById('countryInput').value=''; document.getElementById('yearInput').value='';
+  document.getElementById('fetchStatus').textContent=t('fetchDefault');
+  lastFetchedUrl=''; draftMembers=[]; draftSched=[]; draftKw={ko:[],en:[],zh:[],ja:[]}; draftCategories=[]; draftCountries=[];
+  renderDraftMemberGrid(); renderDraftSched(); renderDraftKw(); renderDraftCat(); renderDraftCountry();
+}
+async function addVideo(){
+  const url = document.getElementById('urlInput').value.trim();
+  const id = parseYouTubeId(url);
+  if(!id){ alert(t('invalidUrl')); return; }
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true; submitBtn.textContent=t('submitting');
+  const titleObj = {}; ['ko','en','zh','ja'].forEach(c=>{ titleObj[c] = document.getElementById('titleInput_'+c).value.trim(); });
+  const title = titleObj.ko || titleObj.en || titleObj.zh || titleObj.ja || t('noTitle')(id);
+  const titleFinal = (titleObj.ko||titleObj.en||titleObj.zh||titleObj.ja) ? titleObj : title;
+  const uploadYear = document.getElementById('yearInput').value.trim();
+  await saveVideoDoc({ id:uid(), ytid:id, url, title: titleFinal, uploadYear: uploadYear||null, members:[...draftMembers], schedule:[...draftSched], keywords:{ko:[...draftKw.ko],en:[...draftKw.en],zh:[...draftKw.zh],ja:[...draftKw.ja]}, categories:[...draftCategories], countries:[...draftCountries], addedAt:Date.now() });
+  submitBtn.disabled = false; submitBtn.textContent=t('submit');
+  closeAddBox();
+}
+function startEdit(vid){
+  const v = videos.find(v=>v.id===vid); if(!v) return;
+  editingId = vid; schedEditIdx = null;
+  const cats = v.categories || (v.category ? [v.category] : []);
+  const countries = v.countries || (v.country ? [v.country] : []);
+  const kwNorm = normalizeKw(v.keywords);
+  editDraft = { title:v.title, url:v.url, uploadYear:v.uploadYear||'', members:[...(v.members||[])], schedule:[...(v.schedule||[])], keywords:{ko:[...kwNorm.ko],en:[...kwNorm.en],zh:[...kwNorm.zh],ja:[...kwNorm.ja]}, categories:[...cats], countries:[...countries] };
+  render();
+}
+function cancelEdit(){ editingId=null; editDraft=null; schedEditIdx=null; render(); }
+async function saveEdit(vid){
+  const v = videos.find(v=>v.id===vid); if(!v||!editDraft) return;
+  const newId = parseYouTubeId(editDraft.url) || v.ytid;
+  savingId = vid; schedEditIdx = null; render();
+  const { category, country, ...rest } = v;
+  await saveVideoDoc({ ...rest, title: editDraft.title || v.title, url: editDraft.url.trim()||v.url, ytid:newId, uploadYear: (editDraft.uploadYear||'').toString().trim()||null, members:editDraft.members, schedule:editDraft.schedule, keywords:editDraft.keywords||{ko:[],en:[],zh:[],ja:[]}, categories:editDraft.categories||[], countries:editDraft.countries||[] });
+  savingId = null; editingId=null; editDraft=null; flashId = vid; render();
+  setTimeout(()=>{ flashId=null; render(); }, 1400);
+}
+function toggleEditCategory(c){ if(!editDraft) return; editDraft.categories = (editDraft.categories||[]).includes(c) ? editDraft.categories.filter(x=>x!==c) : [...(editDraft.categories||[]),c]; render(); }
+function addEditCountry(vid){
+  const inp = document.getElementById('ec-'+vid);
+  if(!inp.value.trim() || !editDraft) return;
+  editDraft.countries = editDraft.countries||[];
+  splitTags(inp.value).forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
+  render();
+  const next = document.getElementById('ec-'+vid); if(next) next.focus();
+}
+function removeEditCountry(c){ if(editDraft) editDraft.countries = (editDraft.countries||[]).filter(x=>x!==c); render(); }
+function addEditKw(vid){
+  const inp = document.getElementById('ek-'+vid);
+  if(!inp.value.trim() || !editDraft) return;
+  editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[]};
+  splitTags(inp.value).forEach(kw=>{ if(!editDraft.keywords[lang].includes(kw)) editDraft.keywords[lang].push(kw); });
+  render();
+  const next = document.getElementById('ek-'+vid); if(next) next.focus();
+}
+function removeEditKw(kw){ if(editDraft) editDraft.keywords[lang] = (editDraft.keywords[lang]||[]).filter(k=>k!==kw); render(); }
+function editField(field, val){ if(editDraft) editDraft[field]=val; }
+function toggleEditMember(name){ if(!editDraft) return; editDraft.members = editDraft.members.includes(name) ? editDraft.members.filter(m=>m!==name) : [...editDraft.members,name]; render(); }
+function toggleEditSelectAll(){ if(!editDraft) return; editDraft.members = editDraft.members.length===ATEEZ_MEMBERS.length ? [] : [...ATEEZ_MEMBERS]; render(); }
+function addEditSched(vid){
+  if(!editDraft) return;
+  const arrs = {}; LANG_CODES.forEach(c=>{ arrs[c] = splitSchedCell((document.getElementById('es-'+vid+'-'+c)||{value:''}).value); });
+  const max = Math.max(0, ...LANG_CODES.map(c=>arrs[c].length));
+  for(let i=0;i<max;i++){
+    const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
+    if(!(obj.ko || obj.en || obj.zh || obj.ja)) continue;
+    const exists = editDraft.schedule.some(s=> typeof s==='object' && LANG_CODES.every(c=>(s[c]||'')===(obj[c]||'')));
+    if(!exists) editDraft.schedule.push(obj);
+  }
+  render();
+  LANG_CODES.forEach(c=>{ const el = document.getElementById('es-'+vid+'-'+c); if(el) el.value=''; });
+  const first = document.getElementById('es-'+vid+'-ko'); if(first) first.focus();
+}
+function removeEditSchedAt(idx){ if(!editDraft) return; editDraft.schedule.splice(idx,1); schedEditIdx=null; render(); }
+function startInlineSched(vid, idx){ schedEditIdx = idx; render(); const el = document.getElementById('se-'+vid+'-'+idx); if(el){ el.focus(); el.select(); } }
+function saveInlineSched(vid, idx, val){
+  if(!editDraft || schedEditIdx!==idx) return;
+  const v = val.trim();
+  const cur = editDraft.schedule[idx];
+  if(!v){ editDraft.schedule.splice(idx,1); }
+  else if(cur && typeof cur === 'object'){ cur[lang] = v; }
+  else { editDraft.schedule[idx] = v; }
+  schedEditIdx = null; render();
+}
+function cancelInlineSched(){ schedEditIdx = null; render(); }
+async function deleteVideo(vid){ if(!confirm(t('delConfirm'))) return; await deleteVideoDoc(vid); }
+
+function highlight(text,q){
+  if(!q) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx===-1) return escapeHtml(text);
+  return escapeHtml(text.slice(0,idx))+'<mark>'+escapeHtml(text.slice(idx,idx+q.length))+'</mark>'+escapeHtml(text.slice(idx+q.length));
+}
+function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function allMembersUsed(){
+  const set = new Set(); videos.forEach(v=>(v.members||[]).forEach(m=>set.add(m)));
+  return ATEEZ_MEMBERS.filter(m=>set.has(m));
+}
+function toggleMemberFilter(m){ activeMembers.has(m) ? activeMembers.delete(m) : activeMembers.add(m); saveActiveMembers(); render(); }
+
+function setNav(v){
+  navState = v;
+  localStorage.setItem('navState', v);
+  document.getElementById('navHome').classList.toggle('active', v==='home');
+  document.getElementById('navMember').classList.toggle('active', v==='member');
+}
+function showToast(){ const el = document.getElementById('toast'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1400); }
+function openMemberPage(){ setNav('member'); document.getElementById('memberPage').classList.add('open'); renderMemberPage(); }
+function closeMemberPage(){ document.getElementById('memberPage').classList.remove('open'); setNav('home'); }
+function selectMemberFromPage(m){
+  activeMembers.clear();
+  if(!(document.getElementById('mc-'+m) && document.getElementById('mc-'+m).classList.contains('active'))) activeMembers.add(m);
+  saveActiveMembers();
+  closeMemberPage(); render();
+}
+function renderMemberPage(){
+  const grid = document.getElementById('memberPageGrid');
+  if(!grid) return;
+  grid.innerHTML = ATEEZ_MEMBERS.map(m=>`
+    <div class="member-card ${activeMembers.has(m)?'active':''}" id="mc-${m}" onclick="selectMemberFromPage('${m}')">
+      <div class="member-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+      <div class="m-name">${mName(m)}</div>
+    </div>`).join('');
+}
+
+function render(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const members = allMembersUsed();
+
+  const totalSched = videos.reduce((a,v)=>a+((v.schedule||[]).length),0);
+  const stats = t('statLine')(videos.length, totalSched, members.length);
+  document.getElementById('statStrip').innerHTML = stats.map(([n,l])=>`<div class="stat-pill"><b>${n}</b><span>${l}</span></div>`).join('');
+
+  let list = [...videos];
+  if(activeMembers.size){ list = list.filter(v=>(v.members||[]).some(m=>activeMembers.has(m))); }
+  if(q){
+    const nq = norm(q);
+    list = list.filter(v=>
+      norm(tr(v.title)).includes(nq) ||
+      (v.members||[]).some(m=>norm(m).includes(nq)||norm(mName(m)).includes(nq)) ||
+      (v.schedule||[]).some(k=>norm(tr(k)).includes(nq)) ||
+      (()=>{ const kwo=normalizeKw(v.keywords); return [...kwo.ko,...kwo.en,...kwo.zh,...kwo.ja].some(k=>norm(k).includes(nq)); })() ||
+      (v.countries||(v.country?[v.country]:[])).some(c=>countryMatchesQuery(c,nq))
+    );
+  }
+  list.sort((a,b)=> sortOrder==='newest' ? (b.addedAt||0)-(a.addedAt||0) : (a.addedAt||0)-(b.addedAt||0));
+
+  const wrap = document.getElementById('reelList');
+  if(list.length===0){
+    wrap.innerHTML = `<div class="empty"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><h3>${videos.length===0?t('emptyNoVideoTitle'):t('emptyNoResultTitle')}</h3><p>${videos.length===0?t('emptyNoVideoDesc'):t('emptyNoResultDesc')}</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(v=>{
+    const editing = isAdmin && editingId===v.id;
+    const src = editing ? editDraft : v;
+    const vMembers = src.members || [];
+    const vSched = src.schedule || [];
+    const vKw = normalizeKw(src.keywords)[lang] || [];
+    const vCategories = src.categories || (src.category ? [src.category] : []);
+    const vCountries = src.countries || (src.country ? [src.country] : []);
+
+    const catBadgeHtml = (!editing && vCategories.length) ? `<div class="cats">${vCategories.map(c=>`<span class="cat-badge">${t('cats')[c]}</span>`).join('')}</div>` : '';
+    const catPickerHtml = !editing ? '' : CATEGORIES.map(c=>
+      `<button type="button" class="pick-btn cat ${vCategories.includes(c)?'picked':''}" onclick="toggleEditCategory('${c}')">${t('cats')[c]}</button>`).join('');
+
+    const memberHtml = editing
+      ? ATEEZ_MEMBERS.map(m=>`<button type="button" class="pick-btn ${vMembers.includes(m)?'picked':''}" onclick="toggleEditMember('${m}')">${mName(m)}</button>`).join('')
+      : (vMembers.length ? vMembers.map(m=>`<span class="member-badge">${mName(m)}</span>`).join('') : `<span class="empty-txt">${t('noMemberOnCard')}</span>`);
+
+    const schedHtml = vSched.map((k,idx)=>{
+      if(!editing){
+        const kStr = schedLangText(k);
+        if(kStr===null) return '';
+        const isMatch = q && kStr.toLowerCase().includes(q);
+        return `<span class="sched-pill ${isMatch?'match':''}">${highlight(kStr,q)}</span>`;
+      }
+      const kStr = tr(k);
+      if(schedEditIdx===idx){
+        return `<span class="sched-pill editing"><input value="${escapeHtml(kStr)}" id="se-${v.id}-${idx}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveInlineSched('${v.id}',${idx},this.value);} if(event.key==='Escape'){cancelInlineSched();}" onblur="saveInlineSched('${v.id}',${idx},this.value)" style="border:none;outline:none;background:transparent;font:inherit;color:inherit;width:${Math.max(4,kStr.length)}ch;padding:6px 4px 6px 9px;"><button onmousedown="event.preventDefault();removeEditSchedAt(${idx})">✕</button></span>`;
+      }
+      return `<span class="sched-pill editing" style="cursor:pointer;" onclick="startInlineSched('${v.id}',${idx})">${escapeHtml(kStr)}<button onclick="event.stopPropagation();removeEditSchedAt(${idx})">✕</button></span>`;
+    }).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`;
+
+    const titleStr = tr(src.title);
+    const titleHtml = editing
+      ? `<input type="text" class="title-edit" value="${escapeHtml(titleStr)}" oninput="editField('title',this.value)">
+         <input type="number" class="title-edit" placeholder="${YEAR_I18N[lang].label}" value="${escapeHtml((src.uploadYear||'').toString())}" oninput="editField('uploadYear',this.value)" style="margin-top:6px;">`
+      : `<a href="${v.url}" target="_blank" rel="noopener">${highlight(titleStr,q)}</a>`;
+
+    const isSaving = savingId===v.id;
+    const actionsHtml = !isAdmin ? '' : editing
+      ? `<div class="card-actions"><button class="primary" onclick="saveEdit('${v.id}')" ${isSaving?'disabled':''}>${isSaving?t('saving'):t('save')}</button><button onclick="cancelEdit()" ${isSaving?'disabled':''}>${t('cancelEdit')}</button></div>`
+      : `<div class="card-actions"><button onclick="startEdit('${v.id}')">${t('edit')}</button><button class="danger" onclick="deleteVideo('${v.id}')">${t('del')}</button></div>`;
+
+    const memberSectionHead = editing
+      ? `<div class="sec-head"><span class="sec-label">${t('memberSection')}</span><button type="button" class="mini-btn ${vMembers.length===ATEEZ_MEMBERS.length?'active':''}" onclick="toggleEditSelectAll()">${vMembers.length===ATEEZ_MEMBERS.length?t('deselectAll'):t('selectAll')}</button></div>`
+      : `<div class="sec-label">${t('memberSection')}</div>`;
+
+    const addSchedRow = editing
+      ? `<div class="sched-lang-row"><span class="lang-tag">KO</span><input id="es-${v.id}-ko" type="text" placeholder="한국어" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSched('${v.id}');}"></div>
+         <div class="sched-lang-row"><span class="lang-tag">EN</span><input id="es-${v.id}-en" type="text" placeholder="English" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSched('${v.id}');}"></div>
+         <div class="sched-lang-row"><span class="lang-tag">ZH</span><input id="es-${v.id}-zh" type="text" placeholder="中文" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSched('${v.id}');}"></div>
+         <div class="sched-lang-row"><span class="lang-tag">JA</span><input id="es-${v.id}-ja" type="text" placeholder="日本語" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSched('${v.id}');}"></div>
+         <div class="add-actions" style="justify-content:flex-start;margin-top:2px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="addEditSched('${v.id}')">+ ${t('add')}</button></div>`
+      : '';
+
+    const kwSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('kwLabel')}</div><div class="row-flex">${
+        vKw.map(k=>`<span class="sched-pill editing">${escapeHtml(k)}<button onclick="removeEditKw('${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`
+      }</div><div class="add-sched"><input id="ek-${v.id}" type="text" placeholder="${t('kwPh')}" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditKw('${v.id}')}"><button onclick="addEditKw('${v.id}')">+ ${t('add')}</button></div></div>`;
+
+    const countrySection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('countryLabel')}</div><div class="row-flex">${
+        vCountries.map(c=>`<span class="sched-pill editing">${escapeHtml(translateCountry(c))}<button onclick="removeEditCountry('${c.replace(/'/g,"\\'")}')">✕</button></span>`).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`
+      }</div><div class="add-sched"><input id="ec-${v.id}" type="text" placeholder="${t('countryHint')}" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditCountry('${v.id}')}"><button onclick="addEditCountry('${v.id}')">+ ${t('add')}</button></div></div>`;
+
+    const catSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('catLabel')}</div><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div>`;
+
+    return `<div class="card ${flashId===v.id?'flash':''}">
+      <div class="thumb">
+        <img src="https://img.youtube.com/vi/${v.ytid}/hqdefault.jpg" alt="thumbnail" loading="lazy">
+        ${catBadgeHtml}
+        <a class="play" href="${v.url}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.5)"/><path d="M10 8l6 4-6 4V8z" fill="white"/></svg></a>
+      </div>
+      <div class="card-body">
+        <p class="card-title">${titleHtml}</p>
+        <div class="card-meta">${src.uploadYear?src.uploadYear+' · ':''}${isAdmin ? t('metaLine')(vSched.length, vMembers.length) : t('metaLineMember')(vMembers.length)}</div>
+        ${actionsHtml}
+        <div class="sec">${memberSectionHead}<div class="row-flex" style="margin-top:9px">${memberHtml}</div></div>
+        <div class="sec"><div class="sec-label">${t('schedSection')}</div><div class="row-flex">${schedHtml}</div>${addSchedRow}</div>
+        ${catSection}
+        ${kwSection}
+        ${countrySection}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+Object.assign(window, {
+  toggleAdmin, fetchTitleForDraft, toggleDraftMember, toggleSelectAllDraft,
+  addSchedToDraft, removeDraftSched, closeAddBox, addVideo, toggleAddBox,
+  startEdit, cancelEdit, saveEdit, editField, toggleEditMember, toggleEditSelectAll,
+  addEditSched, removeEditSchedAt, startInlineSched, saveInlineSched, cancelInlineSched,
+  deleteVideo, toggleMemberFilter, render, openMemberPage, closeMemberPage, selectMemberFromPage,
+  addKwToDraft, removeDraftKw, addEditKw, removeEditKw, setLang,
+  toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
+  addEditCountry, removeEditCountry, setSort, setNav
+});
+
+document.getElementById('adminBtn').classList.toggle('on', isAdmin);
+document.getElementById('addBoxCard').style.display = isAdmin ? '' : 'none';
+document.getElementById('searchInput').value = localStorage.getItem('searchQuery') || '';
+if(navState==='member'){ document.getElementById('memberPage').classList.add('open'); }
+document.getElementById('navHome').classList.toggle('active', navState==='home');
+document.getElementById('navMember').classList.toggle('active', navState==='member');
+applyStaticText();
+renderSortRow();
+renderDraftSched();
+renderDraftKw();
+subscribeVideos();
 </script>
-</body></html>
+</body>
+</html>
