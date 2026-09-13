@@ -132,22 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 .empty h3{color:var(--ink);font-weight:800;margin:0 0 6px;font-size:16px;}
 .empty p{font-size:13px;margin:0;}
 
-/* ---- Bottom nav ---- */
-.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;pointer-events:none;}
-.bottomnav-inner{pointer-events:auto;max-width:480px;width:calc(100% - 32px);margin-bottom:16px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-radius:24px;box-shadow:0 10px 30px rgba(30,20,60,.14);display:flex;padding:8px;}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;border:none;background:none;color:var(--ink3);font-size:10.5px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:16px;transition:all .15s;}
-.nav-btn svg{width:20px;height:20px;}
-.nav-btn.active{color:var(--p);background:var(--p-soft);}
-.memberpage{position:fixed;inset:0;z-index:80;background:var(--bg);max-width:520px;margin:0 auto;display:none;overflow-y:auto;}
-.memberpage.open{display:block;}
-.memberpage-head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:14px 20px;font-weight:800;font-size:16px;z-index:2;}
-.memberpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px;padding:10px 16px 40px;}
-.member-card{background:none;box-shadow:none;border:none;cursor:pointer;text-align:center;padding:0;}
-.member-photo{width:64px;height:64px;margin:0 auto;border-radius:50%;background:var(--p-soft);display:flex;align-items:center;justify-content:center;color:var(--ink3);overflow:hidden;}
-.member-card.active .member-photo{background:var(--p-soft);box-shadow:0 0 0 3px var(--p);color:var(--p);}
-.member-photo svg{width:26px;height:26px;}
-.member-card .m-name{margin-top:7px;font-size:12px;font-weight:800;}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;}
 .toast.show{opacity:1;}
 .sched-lang-row{display:flex;gap:9px;align-items:center;margin-bottom:8px;}
 .sched-lang-row .lang-tag{width:30px;height:30px;flex-shrink:0;font-size:10px;font-weight:800;color:var(--p);background:var(--p-soft);border-radius:9px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;}
@@ -253,20 +238,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 
 <div class="toast" id="toast">준비 중인 기능이에요</div>
 
-<div class="bottomnav"><div class="bottomnav-inner">
-  <button class="nav-btn active" id="navHome" onclick="setNav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span id="navHomeLabel">홈</span></button>
-  <button class="nav-btn" id="navMember" onclick="openMemberPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span id="navMemberLabel">멤버</span></button>
-</div></div>
-
-<div class="memberpage" id="memberPage">
-  <div class="memberpage-head">
-    <button class="icon-btn" onclick="closeMemberPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <span id="memberPageTitle">멤버</span>
-    <span style="width:38px"></span>
-  </div>
-  <div class="memberpage-grid" id="memberPageGrid"></div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -339,7 +310,6 @@ let draftMembers = [], draftSched = [], draftKw = {ko:[],en:[],zh:[],ja:[]}, dra
 let isAdmin = sessionStorage.getItem('isAdmin') === '1';
 let editingId = null, editDraft = null, savingId = null, flashId = null, schedEditIdx = null;
 let lang = localStorage.getItem('lang') || 'ko';
-let navState = localStorage.getItem('navState') || 'home';
 
 const LANGS = [['ko','한국어'],['en','English'],['zh','中文'],['ja','日本語']];
 const I18N = {
@@ -380,7 +350,6 @@ function countryMatchesQuery(str, nq){
   if(i===-1) return norm(str).includes(nq);
   return ['ko','en','zh','ja'].some(l=>norm(COUNTRY_I18N[l][i]).includes(nq));
 }
-const NAV_I18N = { ko:{home:'홈',member:'멤버'}, en:{home:'Home',member:'Member'}, zh:{home:'首页',member:'成员'}, ja:{home:'ホーム',member:'メンバー'} };
 const YEAR_I18N = {
   ko:{label:'업로드 연도',hint:'유튜브 자동 감지가 불가능한 경우 직접 입력해주세요.'},
   en:{label:'Upload Year',hint:'Enter manually if auto-detect is unavailable.'},
@@ -424,11 +393,7 @@ function applyStaticText(){
   document.getElementById('schedFixedHint').textContent = SCHED_HINT_I18N[lang];
   document.getElementById('yearLabel').textContent = YEAR_I18N[lang].label;
   document.getElementById('yearHint').textContent = YEAR_I18N[lang].hint;
-  document.getElementById('navHomeLabel').textContent = NAV_I18N[lang].home;
-  document.getElementById('navMemberLabel').textContent = NAV_I18N[lang].member;
-  document.getElementById('memberPageTitle').textContent = NAV_I18N[lang].member;
   renderLangRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
-  renderMemberPage();
 }
 
 function splitTags(raw){
@@ -655,30 +620,7 @@ function allMembersUsed(){
 }
 function toggleMemberFilter(m){ activeMembers.has(m) ? activeMembers.delete(m) : activeMembers.add(m); saveActiveMembers(); render(); }
 
-function setNav(v){
-  navState = v;
-  localStorage.setItem('navState', v);
-  document.getElementById('navHome').classList.toggle('active', v==='home');
-  document.getElementById('navMember').classList.toggle('active', v==='member');
-}
 function showToast(){ const el = document.getElementById('toast'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1400); }
-function openMemberPage(){ setNav('member'); document.getElementById('memberPage').classList.add('open'); renderMemberPage(); }
-function closeMemberPage(){ document.getElementById('memberPage').classList.remove('open'); setNav('home'); }
-function selectMemberFromPage(m){
-  activeMembers.clear();
-  if(!(document.getElementById('mc-'+m) && document.getElementById('mc-'+m).classList.contains('active'))) activeMembers.add(m);
-  saveActiveMembers();
-  closeMemberPage(); render();
-}
-function renderMemberPage(){
-  const grid = document.getElementById('memberPageGrid');
-  if(!grid) return;
-  grid.innerHTML = ATEEZ_MEMBERS.map(m=>`
-    <div class="member-card ${activeMembers.has(m)?'active':''}" id="mc-${m}" onclick="selectMemberFromPage('${m}')">
-      <div class="member-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
-      <div class="m-name">${mName(m)}</div>
-    </div>`).join('');
-}
 
 function render(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -797,18 +739,15 @@ Object.assign(window, {
   addSchedToDraft, removeDraftSched, closeAddBox, addVideo, toggleAddBox,
   startEdit, cancelEdit, saveEdit, editField, toggleEditMember, toggleEditSelectAll,
   addEditSched, removeEditSchedAt, startInlineSched, saveInlineSched, cancelInlineSched,
-  deleteVideo, toggleMemberFilter, render, openMemberPage, closeMemberPage, selectMemberFromPage,
+  deleteVideo, toggleMemberFilter, render,
   addKwToDraft, removeDraftKw, addEditKw, removeEditKw, setLang,
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
-  addEditCountry, removeEditCountry, setSort, setNav
+  addEditCountry, removeEditCountry, setSort
 });
 
 document.getElementById('adminBtn').classList.toggle('on', isAdmin);
 document.getElementById('addBoxCard').style.display = isAdmin ? '' : 'none';
 document.getElementById('searchInput').value = localStorage.getItem('searchQuery') || '';
-if(navState==='member'){ document.getElementById('memberPage').classList.add('open'); }
-document.getElementById('navHome').classList.toggle('active', navState==='home');
-document.getElementById('navMember').classList.toggle('active', navState==='member');
 applyStaticText();
 renderSortRow();
 renderDraftSched();
