@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 .icon-btn svg{width:18px;height:18px;}
 .hdr-sub{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 16px;}
 
-.search-shell{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-pill);padding:4px 6px 4px 18px;box-shadow:var(--shadow);}
+.search-shell{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-pill);padding:4px 16px 4px 18px;box-shadow:var(--shadow);}
 .search-shell svg{flex-shrink:0;color:var(--ink3);}
 .search-shell input{flex:1;border:none;outline:none;background:transparent;font:inherit;font-size:14.5px;color:var(--ink);padding:12px 0;}
 .search-shell input::placeholder{color:var(--ink3);}
@@ -161,6 +161,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
         <button class="icon-btn" id="noticeBtn" onclick="openNotice()" title="notice">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </button>
+        <button class="icon-btn" id="requestBtn" onclick="openRequest()" title="request">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
+        </button>
         <button class="icon-btn" id="adminBtn" onclick="toggleAdmin()" title="admin">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
         </button>
@@ -269,6 +272,16 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
   </div>
 </div>
 
+<div class="notice-overlay" id="requestOverlay" onclick="if(event.target===this)closeRequest()">
+  <div class="notice-sheet">
+    <button class="notice-close" onclick="closeRequest()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="notice-title" id="requestTitle">요청하기</div>
+    <div class="notice-body" id="requestBody"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -286,6 +299,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const videosCol = collection(db, "videos");
 const noticeDocRef = doc(db, "config", "notice");
+const requestsCol = collection(db, "requests");
 const auth = getAuth(app);
 const ADMIN_UID = "aC0e3rHKAPQOwt1Ql6QXhLcHG8q1";
 function isAdminUser(user){ return !!user && user.uid === ADMIN_UID; }
@@ -581,6 +595,39 @@ function renderNotice(){
       <button type="button" class="btn-solid" onclick="saveNoticeText()">${ei.save}</button>
     </div>`;
 }
+
+const REQUEST_I18N = {
+  ko:{title:'요청하기',ph:'오류 신고나 원하는 기능을 적어주세요 (예: 언어 추가)',submit:'보내기',ok:'요청을 보냈어요. 감사합니다!',fail:'전송에 실패했어요.',empty:'내용을 입력해주세요.'},
+  en:{title:'Send a Request',ph:'Report a bug or suggest a feature (e.g. add a language)',submit:'Send',ok:'Your request has been sent. Thank you!',fail:'Failed to send.',empty:'Please enter your message.'},
+  zh:{title:'提交请求',ph:'请反馈错误或提出建议（例如添加语言）',submit:'发送',ok:'已发送，谢谢！',fail:'发送失败。',empty:'请输入内容。'},
+  ja:{title:'リクエスト送信',ph:'不具合報告やご要望を入力してください（例：言語の追加）',submit:'送信',ok:'送信しました。ありがとうございます！',fail:'送信に失敗しました。',empty:'内容を入力してください。'}
+};
+function openRequest(){
+  document.getElementById('requestTitle').textContent = REQUEST_I18N[lang].title;
+  renderRequestBody();
+  document.getElementById('requestOverlay').classList.add('show');
+}
+function closeRequest(){ document.getElementById('requestOverlay').classList.remove('show'); }
+function renderRequestBody(){
+  const ri = REQUEST_I18N[lang];
+  document.getElementById('requestBody').innerHTML = `
+    <textarea id="requestTextarea" rows="6" placeholder="${escapeHtml(ri.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
+    <div class="add-actions" style="margin-top:10px;">
+      <button type="button" class="btn-solid" onclick="submitRequest()">${ri.submit}</button>
+    </div>`;
+}
+async function submitRequest(){
+  const ri = REQUEST_I18N[lang];
+  const el = document.getElementById('requestTextarea');
+  const val = (el && el.value || '').trim();
+  if(!val){ showToast(ri.empty); return; }
+  try{
+    await setDoc(doc(db,"requests",uid()), { text: val, lang, createdAt: Date.now() });
+    showToast(ri.ok);
+    closeRequest();
+  }catch(e){ showToast(ri.fail); }
+}
+
 
 let filterPanelOpen = {member:false, sort:false};
 function toggleFilterPanel(key){
@@ -953,6 +1000,7 @@ Object.assign(window, {
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
   addEditCountry, removeEditCountry, setSort,
   openNotice, closeNotice, setNoticeLang, saveNoticeText, deleteNoticeText,
+  openRequest, closeRequest, submitRequest,
   applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel
 });
 
