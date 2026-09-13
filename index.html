@@ -234,7 +234,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 
 나라
 한국, 서울" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;"></textarea>
-          <div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" id="pasteDraftBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteDraft()">적용</button></div>
+          <div class="add-actions" style="justify-content:flex-start;margin-top:8px;">
+            <button type="button" id="pasteDraftClipBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p);color:#fff;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="pasteFromClipboardDraft()">클립보드에서 붙여넣기</button>
+            <button type="button" id="pasteDraftBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteDraft()">적용</button>
+          </div>
         </div>
         <div class="field">
           <div class="toggle-head" id="draftCatToggleHead" onclick="toggleDraftCatPanel()"><label id="catLabel" style="margin:0;">카테고리</label><span class="chev">▾</span></div>
@@ -619,6 +622,28 @@ function applyPasteEdit(vid){
   editDraft.countries = editDraft.countries||[];
   r.countries.forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
   render(); showToast(t('pasteDone'));
+}
+async function pasteFromClipboardDraft(){
+  try{
+    const text = await navigator.clipboard.readText();
+    if(!text){ showToast('클립보드가 비어있어요'); return; }
+    document.getElementById('pasteDraftInput').value = text;
+    applyPasteDraft();
+  }catch(err){
+    showToast('클립보드 접근이 차단됐어요. 직접 붙여넣기(길게 눌러 붙여넣기)해주세요.');
+  }
+}
+async function pasteFromClipboardEdit(vid){
+  try{
+    const text = await navigator.clipboard.readText();
+    if(!text){ showToast('클립보드가 비어있어요'); return; }
+    const ta = document.getElementById('pb-'+vid);
+    if(!ta) return;
+    ta.value = text;
+    applyPasteEdit(vid);
+  }catch(err){
+    showToast('클립보드 접근이 차단됐어요. 직접 붙여넣기(길게 눌러 붙여넣기)해주세요.');
+  }
 }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function parseYouTubeId(url){
@@ -1144,7 +1169,10 @@ function render(){
 포르투갈어:
 
 나라
-한국, 서울" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button></div></div>`;
+한국, 서울" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;">
+      <button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p);color:#fff;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="pasteFromClipboardEdit('${v.id}')">클립보드에서 붙여넣기</button>
+      <button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button>
+    </div></div>`;
 
     return `<div class="card ${flashId===v.id?'flash':''}">
       <div class="thumb">
@@ -1179,7 +1207,8 @@ Object.assign(window, {
   openNotice, closeNotice, setNoticeLang, saveNoticeText, deleteNoticeText,
   openUpdateNoticeAdmin, closeUpdateNoticeAdmin, setUpdateNoticeAdminLang, saveUpdateNotice, deleteUpdateNoticeLang,
   closeUpdateNotice, dismissUpdateNoticeForever,
-  applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel, toggleCategoryFilter
+  applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel, toggleCategoryFilter,
+  pasteFromClipboardDraft, pasteFromClipboardEdit
 });
 
 applyAdminVisibility();
