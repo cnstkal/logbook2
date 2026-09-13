@@ -140,9 +140,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 .sched-lang-row input{flex:1;padding:11px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;}
 .sched-lang-row input:focus{border-color:var(--p);background:var(--surface);}
 @media(max-width:600px){input,select,textarea{font-size:16px !important;}}
-.notice-overlay{position:fixed;inset:0;background:rgba(20,15,35,.45);display:none;align-items:flex-end;justify-content:center;z-index:70;}
+.notice-overlay{position:fixed;inset:0;background:rgba(20,15,35,.45);display:none;align-items:center;justify-content:center;z-index:70;padding:20px;}
 .notice-overlay.show{display:flex;}
-.notice-sheet{position:relative;background:var(--surface);width:100%;max-width:480px;border-radius:24px 24px 0 0;max-height:80vh;overflow-y:auto;padding:22px 20px 30px;}
+.notice-sheet{position:relative;background:var(--surface);width:100%;max-width:480px;border-radius:24px;max-height:80vh;overflow-y:auto;padding:22px 20px 30px;}
 @media(min-width:540px){.notice-overlay{align-items:center;} .notice-sheet{border-radius:24px;max-height:75vh;}}
 .notice-title{font-size:18px;font-weight:800;margin-bottom:14px;}
 .notice-close{position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;color:var(--ink3);display:flex;}
@@ -290,6 +290,11 @@ const auth = getAuth(app);
 const ADMIN_UID = "aC0e3rHKAPQOwt1Ql6QXhLcHG8q1";
 function isAdminUser(user){ return !!user && user.uid === ADMIN_UID; }
 const ATEEZ_MEMBERS = ['홍중','성화','윤호','여상','산','민기','우영','종호'];
+const MEMBER_DISPLAY_ORDER = ['성화','홍중','윤호','여상','산','민기','우영','종호'];
+function sortMembersDisplay(arr){
+  return [...(arr||[])].sort((a,b)=>MEMBER_DISPLAY_ORDER.indexOf(a)-MEMBER_DISPLAY_ORDER.indexOf(b));
+}
+const MEMBER_FULLNAME = {'성화':'박성화','홍중':'김홍중','윤호':'정윤호','여상':'강여상','산':'최산','민기':'송민기','우영':'정우영','종호':'최종호'};
 const MEMBER_I18N = {
   ko:{'홍중':'홍중','성화':'성화','윤호':'윤호','여상':'여상','산':'산','민기':'민기','우영':'우영','종호':'종호'},
   en:{'홍중':'Hongjoong','성화':'Seonghwa','윤호':'Yunho','여상':'Yeosang','산':'San','민기':'Mingi','우영':'Wooyoung','종호':'Jongho'},
@@ -313,7 +318,7 @@ function schedLangText(k){
 }
 function tr(x){
   if(typeof x === 'string') return x;
-  if(x && typeof x === 'object' && !Array.isArray(x)) return x[lang] || '';
+  if(x && typeof x === 'object' && !Array.isArray(x)) return x[lang] || x.ko || x.en || x.zh || x.ja || '';
   return pickLang(x);
 }
 let sortOrder = localStorage.getItem('sortOrder') || 'newest';
@@ -339,6 +344,7 @@ function norm(s){ return (s||'').toString().toLowerCase().replace(/\s+/g,''); }
 const CATEGORIES = ['concert','show','photobook','behind','musicshow','event','offline','etc'];
 
 let videos = [];
+let videosLoaded = false;
 let activeMembers = new Set(JSON.parse(localStorage.getItem('activeMembers')||'[]'));
 function saveActiveMembers(){ localStorage.setItem('activeMembers', JSON.stringify([...activeMembers])); }
 let draftMembers = [], draftSched = [], draftKw = {ko:[],en:[],zh:[],ja:[]}, draftCategories = [], draftCountries = [], lastFetchedUrl = '';
@@ -391,6 +397,9 @@ const YEAR_I18N = {
   zh:{label:'上传年份',hint:'无法自动检测时请手动输入。'},
   ja:{label:'アップロード年',hint:'自動検出できない場合は直接入力してください。'}
 };
+const MEMBER_FILTER_LABEL_I18N = { ko:'멤버 필터', en:'Member Filter', zh:'成员筛选', ja:'メンバーフィルター' };
+const SORT_LABEL_I18N = { ko:'정렬', en:'Sort', zh:'排序', ja:'並び替え' };
+const LOADING_I18N = { ko:'로딩 중...', en:'Loading...', zh:'加载中...', ja:'読み込み中...' };
 const SCHED_HINT_I18N = {
   ko:'각 칸에 입력한 내용은 해당 언어에서만 그대로 표시돼요. 자동 번역되지 않아요.',
   en:'What you type in each box is shown only in that language, exactly as entered. No auto-translation.',
@@ -433,6 +442,8 @@ function applyStaticText(){
   document.getElementById('pasteDraftBtn').textContent = t('pasteApply');
   document.getElementById('yearLabel').textContent = YEAR_I18N[lang].label;
   document.getElementById('yearHint').textContent = YEAR_I18N[lang].hint;
+  document.getElementById('memberToggleLabel').textContent = MEMBER_FILTER_LABEL_I18N[lang];
+  document.getElementById('sortToggleLabel').textContent = SORT_LABEL_I18N[lang];
   renderLangRow(); renderMemberRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
 }
 
@@ -504,8 +515,9 @@ function parseYouTubeId(url){
 function subscribeVideos(){
   onSnapshot(videosCol, (snap)=>{
     videos = snap.docs.map(d=>d.data()).sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));
+    videosLoaded = true;
     render();
-  }, (err)=>{ console.error(err); alert(t('loadFail')(err.message)); });
+  }, (err)=>{ console.error(err); videosLoaded = true; alert(t('loadFail')(err.message)); });
 }
 async function saveVideoDoc(v){ try{ await setDoc(doc(db,"videos",v.id), v); } catch(e){ alert(t('saveFail')(e.message)); } }
 async function deleteVideoDoc(id){ try{ await deleteDoc(doc(db,"videos",id)); } catch(e){ alert(t('delFail')(e.message)); } }
@@ -825,7 +837,7 @@ function render(){
     const nq = norm(q);
     list = list.filter(v=>
       norm(tr(v.title)).includes(nq) ||
-      (v.members||[]).some(m=>norm(m).includes(nq)||norm(mName(m)).includes(nq)) ||
+      (v.members||[]).some(m=>norm(m).includes(nq)||norm(mName(m)).includes(nq)||norm(MEMBER_FULLNAME[m]||'').includes(nq)) ||
       (v.schedule||[]).some(k=>norm(tr(k)).includes(nq)) ||
       (()=>{ const kwo=normalizeKw(v.keywords); return [...kwo.ko,...kwo.en,...kwo.zh,...kwo.ja].some(k=>norm(k).includes(nq)); })() ||
       (v.countries||(v.country?[v.country]:[])).some(c=>countryMatchesQuery(c,nq))
@@ -834,6 +846,10 @@ function render(){
   list.sort((a,b)=> sortOrder==='newest' ? (b.addedAt||0)-(a.addedAt||0) : (a.addedAt||0)-(b.addedAt||0));
 
   const wrap = document.getElementById('reelList');
+  if(!videosLoaded){
+    wrap.innerHTML = `<div class="empty"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><h3>${LOADING_I18N[lang]}</h3></div>`;
+    return;
+  }
   if(list.length===0){
     wrap.innerHTML = `<div class="empty"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><h3>${videos.length===0?t('emptyNoVideoTitle'):t('emptyNoResultTitle')}</h3><p>${videos.length===0?t('emptyNoVideoDesc'):t('emptyNoResultDesc')}</p></div>`;
     return;
@@ -842,7 +858,7 @@ function render(){
   wrap.innerHTML = list.map(v=>{
     const editing = isAdmin && editingId===v.id;
     const src = editing ? editDraft : v;
-    const vMembers = src.members || [];
+    const vMembers = editing ? (src.members || []) : sortMembersDisplay(src.members || []);
     const vSched = src.schedule || [];
     const vKw = normalizeKw(src.keywords)[lang] || [];
     const vCategories = src.categories || (src.category ? [src.category] : []);
@@ -946,6 +962,7 @@ applyStaticText();
 renderSortRow();
 renderDraftSched();
 renderDraftKw();
+render();
 subscribeVideos();
 subscribeNotice();
 </script>
