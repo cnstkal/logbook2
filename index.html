@@ -183,6 +183,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
     <div class="chip-row" id="langRow"></div>
     <div class="toggle-head" id="memberToggleHead" onclick="toggleFilterPanel('member')"><span id="memberToggleLabel">멤버 필터</span><span class="chev">▾</span></div>
     <div class="toggle-panel" id="memberPanel"><div class="chip-row wrap" id="memberRow" style="padding-top:6px;"></div></div>
+    <div class="toggle-head" id="catFilterToggleHead" onclick="toggleFilterPanel('catFilter')"><span id="catFilterToggleLabel">카테고리 필터</span><span class="chev">▾</span></div>
+    <div class="toggle-panel" id="catFilterPanel"><div class="chip-row wrap" id="catFilterRow" style="padding-top:6px;"></div></div>
     <div class="toggle-head" id="sortToggleHead" onclick="toggleFilterPanel('sort')"><span id="sortToggleLabel">정렬</span><span class="chev">▾</span></div>
     <div class="toggle-panel" id="sortPanel"><div class="chip-row wrap" id="sortRow" style="padding-top:6px;"></div></div>
   </div>
@@ -406,6 +408,16 @@ let videos = [];
 let videosLoaded = false;
 let activeMembers = new Set(JSON.parse(localStorage.getItem('activeMembers')||'[]'));
 function saveActiveMembers(){ localStorage.setItem('activeMembers', JSON.stringify([...activeMembers])); }
+let activeCategories = new Set(JSON.parse(localStorage.getItem('activeCategories')||'[]'));
+function saveActiveCategories(){ localStorage.setItem('activeCategories', JSON.stringify([...activeCategories])); }
+function toggleCategoryFilter(c){
+  if(activeCategories.has(c)) activeCategories.delete(c); else activeCategories.add(c);
+  saveActiveCategories(); renderCatFilterRow(); render();
+}
+function renderCatFilterRow(){
+  document.getElementById('catFilterRow').innerHTML = CATEGORIES.map(c=>
+    `<button class="chip member ${activeCategories.has(c)?'active':''}" onclick="toggleCategoryFilter('${c}')">${t('cats')[c]}</button>`).join('');
+}
 let draftMembers = [], draftSched = [], draftKw = {ko:[],en:[],zh:[],ja:[],es:[],pt:[]}, draftCategories = [], draftCountries = [], lastFetchedUrl = '';
 let isAdmin = false;
 let editingId = null, editDraft = null, savingId = null, flashId = null, schedEditIdx = null;
@@ -470,6 +482,7 @@ const YEAR_I18N = {
   pt:{label:'Ano de upload',hint:'Insira manualmente se a detecção automática não estiver disponível.'}
 };
 const MEMBER_FILTER_LABEL_I18N = { ko:'멤버 필터', en:'Member Filter', zh:'成员筛选', ja:'メンバーフィルター', es:'Filtro de miembros', pt:'Filtro de membros' };
+const CAT_FILTER_LABEL_I18N = { ko:'카테고리 필터', en:'Category Filter', zh:'分类筛选', ja:'カテゴリーフィルター', es:'Filtro de categoría', pt:'Filtro de categoria' };
 const SORT_LABEL_I18N = { ko:'정렬', en:'Sort', zh:'排序', ja:'並び替え', es:'Ordenar', pt:'Ordenar' };
 const LOADING_I18N = { ko:'로딩 중...', en:'Loading...', zh:'加载中...', ja:'読み込み中...', es:'Cargando...', pt:'Carregando...' };
 const SCHED_HINT_I18N = {
@@ -525,8 +538,9 @@ function applyStaticText(){
   document.getElementById('yearLabel').textContent = YEAR_I18N[lang].label;
   document.getElementById('yearHint').textContent = YEAR_I18N[lang].hint;
   document.getElementById('memberToggleLabel').textContent = MEMBER_FILTER_LABEL_I18N[lang];
+  document.getElementById('catFilterToggleLabel').textContent = CAT_FILTER_LABEL_I18N[lang];
   document.getElementById('sortToggleLabel').textContent = SORT_LABEL_I18N[lang];
-  renderLangRow(); renderMemberRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
+  renderLangRow(); renderMemberRow(); renderCatFilterRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
 }
 
 function splitTags(raw){
@@ -813,7 +827,7 @@ async function deleteUpdateNoticeLang(){
 }
 
 
-let filterPanelOpen = {member:false, sort:false};
+let filterPanelOpen = {member:false, sort:false, catFilter:false};
 function toggleFilterPanel(key){
   filterPanelOpen[key] = !filterPanelOpen[key];
   document.getElementById(key+'ToggleHead').classList.toggle('open', filterPanelOpen[key]);
@@ -1070,6 +1084,7 @@ function render(){
   let list = [...videos];
   if(activeMembers.size){ const amArr=[...activeMembers]; list = list.filter(v=>amArr.every(m=>(v.members||[]).includes(m))); }
   if(excludeAllMembers){ list = list.filter(v=>(v.members||[]).length !== ATEEZ_MEMBERS.length); }
+  if(activeCategories.size){ const acArr=[...activeCategories]; list = list.filter(v=>{ const vc=v.categories||(v.category?[v.category]:[]); return acArr.every(c=>vc.includes(c)); }); }
   if(q){
     const nq = norm(q);
     list = list.filter(v=>
@@ -1156,8 +1171,7 @@ function render(){
         vCountries.map(c=>`<span class="sched-pill editing">${escapeHtml(translateCountry(c))}<button onclick="removeEditCountry('${c.replace(/'/g,"\\'")}')">✕</button></span>`).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`
       }</div><div class="add-sched"><input id="ec-${v.id}" type="text" placeholder="${t('countryHint')}" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditCountry('${v.id}')}"><button onclick="addEditCountry('${v.id}')">+ ${t('add')}</button></div></div>`;
 
-    const catOpen = !!editCatOpen[v.id];
-    const catSection = !editing ? '' : `<div class="sec"><div class="toggle-head ${catOpen?'open':''}" onclick="toggleEditCatPanel('${v.id}')"><span class="sec-label" style="margin:0;">${t('catLabel')}</span><span class="chev">▾</span></div><div class="toggle-panel ${catOpen?'open':''}"><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div></div>`;
+    const catSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('catLabel')}</div><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div>`;
 
     const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" placeholder="형식대로 붙여넣고 적용을 눌러주세요" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button></div></div>`;
 
@@ -1196,7 +1210,7 @@ Object.assign(window, {
   openRequestsAdmin, closeRequestsAdmin, deleteRequestItem,
   openUpdateNoticeAdmin, closeUpdateNoticeAdmin, setUpdateNoticeAdminLang, saveUpdateNotice, deleteUpdateNoticeLang,
   closeUpdateNotice, dismissUpdateNoticeForever,
-  applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel
+  applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel, toggleCategoryFilter
 });
 
 applyAdminVisibility();
