@@ -1,0 +1,25 @@
+name: Import original index
+on:
+  push:
+    branches: [main]
+jobs:
+  import:
+    if: contains(github.event.head_commit.message, 'IMPORT ORIGINAL INDEX')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace with original index
+        run: |
+          set -e
+          curl -fsSL https://raw.githubusercontent.com/cnstkal/logbook/905dc6af1039cc036004c3720221a09a52a4a8c3/index.html -o index.html
+          test "$(wc -l < index.html)" -gt 800
+          grep -q 'subscribeVideos' index.html
+          grep -q 'logbook.zip' index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/import-original.yml .github/import-trigger.txt
+          git add -A
+          git commit -m 'Import full original index' || exit 1
+          git push
