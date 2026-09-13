@@ -547,7 +547,7 @@ function toggleAdmin(){
   if(!isAdmin){ editingId = null; editDraft = null; }
   sessionStorage.setItem('isAdmin', isAdmin?'1':'0');
   document.getElementById('adminBtn').classList.toggle('on', isAdmin);
-  document.getElementById('addBoxCard').style.display = isAdmin ? '' : 'none';
+  document.getElementById('addBoxCard').style.display = isAdmin ? 'block' : 'none';
   render();
 }
 function toggleAddBox(){
@@ -870,7 +870,7 @@ Object.assign(window, {
 });
 
 document.getElementById('adminBtn').classList.toggle('on', isAdmin);
-document.getElementById('addBoxCard').style.display = isAdmin ? '' : 'none';
+document.getElementById('addBoxCard').style.display = isAdmin ? 'block' : 'none';
 document.getElementById('searchInput').value = localStorage.getItem('searchQuery') || '';
 applyStaticText();
 renderSortRow();
