@@ -285,6 +285,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const videosCol = collection(db, "videos");
+const noticeDocRef = doc(db, "config", "notice");
 const auth = getAuth(app);
 const ADMIN_UID = "aC0e3rHKAPQOwt1Ql6QXhLcHG8q1";
 function isAdminUser(user){ return !!user && user.uid === ADMIN_UID; }
@@ -509,14 +510,27 @@ function subscribeVideos(){
 async function saveVideoDoc(v){ try{ await setDoc(doc(db,"videos",v.id), v); } catch(e){ alert(t('saveFail')(e.message)); } }
 async function deleteVideoDoc(id){ try{ await deleteDoc(doc(db,"videos",id)); } catch(e){ alert(t('delFail')(e.message)); } }
 
-const NOTICE_I18N = {
+const NOTICE_EMPTY_I18N = {
   ko: '아직 등록된 공지가 없습니다.',
   en: 'No notices have been posted yet.',
   zh: '暂无公告。',
   ja: 'まだお知らせはありません。'
 };
 const NOTICE_TITLE_I18N = { ko:'공지', en:'Notice', zh:'公告', ja:'お知らせ' };
+const NOTICE_EDIT_I18N = {
+  ko:{ph:'공지 내용을 입력하세요',save:'저장',del:'삭제',saveOk:'공지를 저장했어요',delOk:'공지를 삭제했어요',delConfirm:'이 언어의 공지를 삭제할까요?'},
+  en:{ph:'Enter notice content',save:'Save',del:'Delete',saveOk:'Notice saved',delOk:'Notice deleted',delConfirm:'Delete this notice?'},
+  zh:{ph:'请输入公告内容',save:'保存',del:'删除',saveOk:'已保存公告',delOk:'已删除公告',delConfirm:'要删除这个公告吗？'},
+  ja:{ph:'お知らせ内容を入力してください',save:'保存',del:'削除',saveOk:'お知らせを保存しました',delOk:'お知らせを削除しました',delConfirm:'このお知らせを削除しますか？'}
+};
 let noticeLang = lang;
+let noticeData = {ko:'',en:'',zh:'',ja:''};
+function subscribeNotice(){
+  onSnapshot(noticeDocRef, (snap)=>{
+    noticeData = snap.exists() ? {ko:'',en:'',zh:'',ja:'',...snap.data()} : {ko:'',en:'',zh:'',ja:''};
+    if(document.getElementById('noticeOverlay').classList.contains('show')) renderNotice();
+  }, (err)=>{ console.error(err); });
+}
 function openNotice(){
   noticeLang = lang;
   renderNotice();
@@ -524,11 +538,36 @@ function openNotice(){
 }
 function closeNotice(){ document.getElementById('noticeOverlay').classList.remove('show'); }
 function setNoticeLang(l){ noticeLang = l; renderNotice(); }
+async function saveNoticeText(){
+  const val = (document.getElementById('noticeEditArea')||{value:''}).value;
+  try{
+    await setDoc(noticeDocRef, {...noticeData, [noticeLang]: val}, {merge:true});
+    showToast();
+  }catch(e){ alert(t('saveFail')(e.message)); }
+}
+async function deleteNoticeText(){
+  if(!confirm(NOTICE_EDIT_I18N[lang].delConfirm)) return;
+  try{
+    await setDoc(noticeDocRef, {...noticeData, [noticeLang]: ''}, {merge:true});
+    showToast();
+  }catch(e){ alert(t('delFail')(e.message)); }
+}
 function renderNotice(){
   document.getElementById('noticeTitle').textContent = NOTICE_TITLE_I18N[noticeLang];
   document.getElementById('noticeLangRow').innerHTML = LANGS.map(([code,label])=>
     `<button class="${noticeLang===code?'active':''}" onclick="setNoticeLang('${code}')">${label}</button>`).join('');
-  document.getElementById('noticeBody').textContent = NOTICE_I18N[noticeLang];
+  const cur = noticeData[noticeLang] || '';
+  if(!isAdmin){
+    document.getElementById('noticeBody').innerHTML = `<div class="notice-view">${escapeHtml(cur || NOTICE_EMPTY_I18N[noticeLang])}</div>`;
+    return;
+  }
+  const ei = NOTICE_EDIT_I18N[lang];
+  document.getElementById('noticeBody').innerHTML = `
+    <textarea id="noticeEditArea" rows="6" placeholder="${escapeHtml(ei.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;">${escapeHtml(cur)}</textarea>
+    <div class="add-actions" style="margin-top:10px;">
+      <button type="button" class="btn-danger" onclick="deleteNoticeText()">${ei.del}</button>
+      <button type="button" class="btn-solid" onclick="saveNoticeText()">${ei.save}</button>
+    </div>`;
 }
 
 let filterPanelOpen = {member:false, sort:false};
@@ -580,6 +619,7 @@ onAuthStateChanged(auth, (user)=>{
   if(!isAdmin){ editingId = null; editDraft = null; }
   applyAdminVisibility();
   render();
+  if(document.getElementById('noticeOverlay').classList.contains('show')) renderNotice();
 });
 function toggleAddBox(){
   const body = document.getElementById('addBody'), head = document.getElementById('addHead');
@@ -896,7 +936,7 @@ Object.assign(window, {
   addKwToDraft, removeDraftKw, addEditKw, removeEditKw, setLang,
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
   addEditCountry, removeEditCountry, setSort,
-  openNotice, closeNotice, setNoticeLang,
+  openNotice, closeNotice, setNoticeLang, saveNoticeText, deleteNoticeText,
   applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel
 });
 
@@ -907,6 +947,7 @@ renderSortRow();
 renderDraftSched();
 renderDraftKw();
 subscribeVideos();
+subscribeNotice();
 </script>
 </body>
 </html>
