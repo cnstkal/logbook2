@@ -696,14 +696,16 @@ function renderRequestsAdmin(){
     document.getElementById('requestsAdminBody').innerHTML = `<p style="color:var(--ink3);font-size:13.5px;">${ri.empty}</p>`;
     return;
   }
-  document.getElementById('requestsAdminBody').innerHTML = requestsList.map(r=>{
+  document.getElementById('requestsAdminBody').innerHTML = `<div style="max-height:264px;overflow-y:auto;">` + requestsList.map(r=>{
     const dt = r.createdAt ? new Date(r.createdAt).toLocaleString() : '';
-    return `<div style="border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;">${escapeHtml(dt)} · ${escapeHtml((r.lang||'').toUpperCase())}</div>
-      <div style="font-size:13.5px;color:var(--ink);white-space:pre-wrap;line-height:1.6;">${escapeHtml(r.text||'')}</div>
-      <div class="add-actions" style="margin-top:8px;"><button type="button" class="btn-danger" onclick="deleteRequestItem('${r.id}')">${ri.del}</button></div>
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10.5px;color:var(--ink3);margin-bottom:3px;">${escapeHtml(dt)} · ${escapeHtml((r.lang||'').toUpperCase())}</div>
+        <div style="font-size:13px;color:var(--ink);white-space:pre-wrap;line-height:1.45;">${escapeHtml(r.text||'')}</div>
+      </div>
+      <button type="button" onclick="deleteRequestItem('${r.id}')" style="flex-shrink:0;border:none;background:var(--red-soft);color:var(--red);font-size:11px;font-weight:800;border-radius:var(--r-pill);padding:6px 11px;font-family:inherit;cursor:pointer;">${ri.del}</button>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`;
 }
 
 const updateNoticeDocRef = doc(db, "config", "updateNotice");
@@ -711,7 +713,7 @@ let updateNoticeData = null;
 let updateNoticeShownThisSession = false;
 let updateNoticeAdminLang = lang;
 const UPDATE_NOTICE_I18N = { ko:'업데이트 안내', en:'Update', zh:'更新公告', ja:'アップデートのお知らせ' };
-const UPDATE_NOTICE_BTN_I18N = { ko:{close:'닫기',forever:'영원히 안 보기'}, en:{close:'Close',forever:"Don't show again"}, zh:{close:'关闭',forever:'不再显示'}, ja:{close:'閉じる',forever:'今後表示しない'} };
+const UPDATE_NOTICE_BTN_I18N = { ko:{close:'닫기',forever:'영원히 보지않기'}, en:{close:'Close',forever:"Don't show again"}, zh:{close:'关闭',forever:'不再显示'}, ja:{close:'閉じる',forever:'今後表示しない'} };
 function subscribeUpdateNotice(){
   onSnapshot(updateNoticeDocRef, (snap)=>{
     updateNoticeData = snap.exists() ? snap.data() : null;
@@ -730,7 +732,9 @@ function maybeShowUpdateNotice(){
   updateNoticeShownThisSession = true;
   document.getElementById('updateNoticeTitle').textContent = UPDATE_NOTICE_I18N[lang];
   const bi = UPDATE_NOTICE_BTN_I18N[lang];
+  const dt = new Date(version).toLocaleString();
   document.getElementById('updateNoticeBody').innerHTML = `
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">${escapeHtml(dt)}</div>
     <div class="notice-view" style="margin-bottom:16px;">${escapeHtml(text)}</div>
     <div class="add-actions" style="justify-content:space-between;">
       <button type="button" class="btn-ghost" onclick="dismissUpdateNoticeForever()">${bi.forever}</button>
@@ -765,7 +769,7 @@ function renderUpdateNoticeAdmin(){
     </div>`;
 }
 async function saveUpdateNotice(){
-  const val = (document.getElementById('updateNoticeAdminArea')||{value:''}).value;
+  const val = (document.getElementById('updateNoticeAdminArea')||{value:''}).value.trim();
   try{
     await setDoc(updateNoticeDocRef, {...(updateNoticeData||{}), [updateNoticeAdminLang]: val, version: Date.now()}, {merge:true});
     showToast(NOTICE_EDIT_I18N[lang].saveOk);
