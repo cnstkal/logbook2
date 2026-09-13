@@ -547,18 +547,19 @@ function splitTags(raw){
 function parsePasteBlock(text){
   const lines = (text||'').split('\n').map(l=>l.trim());
   const langMap = {'한국어':'ko','영어':'en','중국어':'zh','일본어':'ja','스페인어':'es','포르투갈어':'pt'};
-  const res = { year:null, sched:{ko:'',en:'',zh:'',ja:'',es:'',pt:''}, kw:{ko:'',en:'',zh:'',ja:'',es:'',pt:''}, countries:[] };
+  const res = { year:null, schedBlocks:[], kw:{ko:'',en:'',zh:'',ja:'',es:'',pt:''}, countries:[] };
   let section = null;
+  let curSched = null;
   lines.forEach(raw=>{
     if(!raw) return;
     if(section===null && /^\d{4}$/.test(raw)){ res.year = raw; return; }
-    if(raw==='스케줄'){ section='sched'; return; }
-    if(raw==='숨겨진 검색어'){ section='kw'; return; }
-    if(raw==='나라'){ section='country'; return; }
+    if(raw==='스케줄'){ section='sched'; curSched = {ko:'',en:'',zh:'',ja:'',es:'',pt:''}; res.schedBlocks.push(curSched); return; }
+    if(raw==='숨겨진 검색어'){ section='kw'; curSched=null; return; }
+    if(raw==='나라'){ section='country'; curSched=null; return; }
     const m = raw.match(/^(한국어|영어|중국어|일본어|스페인어|포르투갈어)\s*[:：]\s*(.*)$/);
     if(m){
       const code = langMap[m[1]], val = m[2].trim();
-      if(section==='sched') res.sched[code] = val;
+      if(section==='sched' && curSched) curSched[code] = val;
       else if(section==='kw') res.kw[code] = val;
       return;
     }
@@ -566,14 +567,24 @@ function parsePasteBlock(text){
   });
   return res;
 }
+function expandSchedBlocks(blocks){
+  const out = [];
+  (blocks||[]).forEach(block=>{
+    const arrs = {}; LANG_CODES.forEach(c=>{ arrs[c] = splitSchedCell(block[c]||''); });
+    const max = Math.max(0, ...LANG_CODES.map(c=>arrs[c].length));
+    for(let i=0;i<max;i++){
+      const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
+      if(obj.ko || obj.en || obj.zh || obj.ja || obj.es || obj.pt) out.push(obj);
+    }
+  });
+  return out;
+}
 function applyPasteDraft(){
   const ta = document.getElementById('pasteDraftInput');
   const r = parsePasteBlock(ta.value);
   if(r.year) document.getElementById('yearInput').value = r.year;
-  if(r.sched.ko||r.sched.en||r.sched.zh||r.sched.ja||r.sched.es||r.sched.pt){
-    LANG_CODES.forEach(c=>{ document.getElementById('schedInput_'+c).value = r.sched[c]; });
-    addSchedToDraft();
-  }
+  expandSchedBlocks(r.schedBlocks).forEach(obj=> draftSched.push(obj));
+  renderDraftSched();
   LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(draftKw[c],k)); });
   r.countries.forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
   renderDraftKw(); renderDraftCountry();
@@ -585,14 +596,7 @@ function applyPasteEdit(vid){
   if(!ta) return;
   const r = parsePasteBlock(ta.value);
   if(r.year) editDraft.uploadYear = r.year;
-  if(r.sched.ko||r.sched.en||r.sched.zh||r.sched.ja||r.sched.es||r.sched.pt){
-    const arrs = {}; LANG_CODES.forEach(c=>{ arrs[c] = splitSchedCell(r.sched[c]||''); });
-    const max = Math.max(0, ...LANG_CODES.map(c=>arrs[c].length));
-    for(let i=0;i<max;i++){
-      const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
-      if(obj.ko || obj.en || obj.zh || obj.ja || obj.es || obj.pt) editDraft.schedule.push(obj);
-    }
-  }
+  expandSchedBlocks(r.schedBlocks).forEach(obj=> editDraft.schedule.push(obj));
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
   LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(editDraft.keywords[c],k)); });
   editDraft.countries = editDraft.countries||[];
