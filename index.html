@@ -586,8 +586,12 @@ function applyPasteEdit(vid){
   const r = parsePasteBlock(ta.value);
   if(r.year) editDraft.uploadYear = r.year;
   if(r.sched.ko||r.sched.en||r.sched.zh||r.sched.ja||r.sched.es||r.sched.pt){
-    const exists = editDraft.schedule.some(s=> typeof s==='object' && LANG_CODES.every(c=>(s[c]||'')===(r.sched[c]||'')));
-    if(!exists) editDraft.schedule.push({...r.sched});
+    const arrs = {}; LANG_CODES.forEach(c=>{ arrs[c] = splitSchedCell(r.sched[c]||''); });
+    const max = Math.max(0, ...LANG_CODES.map(c=>arrs[c].length));
+    for(let i=0;i<max;i++){
+      const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
+      if(obj.ko || obj.en || obj.zh || obj.ja || obj.es || obj.pt) editDraft.schedule.push(obj);
+    }
   }
   editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[],es:[],pt:[]};
   LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>pushUniqueKw(editDraft.keywords[c],k)); });
@@ -865,10 +869,7 @@ function buildSchedEntries(){
 }
 function addSchedToDraft(){
   const entries = buildSchedEntries();
-  entries.forEach(obj=>{
-    const exists = draftSched.some(s=>LANG_CODES.every(c=>(s[c]||'')===(obj[c]||'')));
-    if(!exists) draftSched.push(obj);
-  });
+  entries.forEach(obj=>{ draftSched.push(obj); });
   LANG_CODES.forEach(c=>{ document.getElementById('schedInput_'+c).value=''; });
   renderDraftSched(); document.getElementById('schedInput_ko').focus();
 }
@@ -971,8 +972,7 @@ function addEditSched(vid){
   for(let i=0;i<max;i++){
     const obj = {}; LANG_CODES.forEach(c=>{ obj[c] = arrs[c][i] || ''; });
     if(!(obj.ko || obj.en || obj.zh || obj.ja || obj.es || obj.pt)) continue;
-    const exists = editDraft.schedule.some(s=> typeof s==='object' && LANG_CODES.every(c=>(s[c]||'')===(obj[c]||'')));
-    if(!exists) editDraft.schedule.push(obj);
+    editDraft.schedule.push(obj);
   }
   render();
   LANG_CODES.forEach(c=>{ const el = document.getElementById('es-'+vid+'-'+c); if(el) el.value=''; });
@@ -1061,7 +1061,7 @@ function render(){
         const isMatch = q && kStr.toLowerCase().includes(q);
         return `<span class="sched-pill ${isMatch?'match':''}">${highlight(kStr,q)}</span>`;
       }
-      const kStr = tr(k);
+      const kStr = schedLangText(k) || '';
       if(schedEditIdx===idx){
         return `<span class="sched-pill editing"><input value="${escapeHtml(kStr)}" id="se-${v.id}-${idx}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveInlineSched('${v.id}',${idx},this.value);} if(event.key==='Escape'){cancelInlineSched();}" onblur="saveInlineSched('${v.id}',${idx},this.value)" style="border:none;outline:none;background:transparent;font:inherit;color:inherit;width:${Math.max(4,kStr.length)}ch;padding:6px 4px 6px 9px;"><button onmousedown="event.preventDefault();removeEditSchedAt(${idx})">✕</button></span>`;
       }
