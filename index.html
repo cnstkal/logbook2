@@ -472,7 +472,7 @@ function applyPasteDraft(){
   LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!draftKw[c].includes(k)) draftKw[c].push(k); }); });
   r.countries.forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
   renderDraftKw(); renderDraftCountry();
-  ta.value=''; showToast();
+  ta.value=''; showToast(t('pasteDone'));
 }
 function applyPasteEdit(vid){
   if(!editDraft) return;
@@ -488,7 +488,7 @@ function applyPasteEdit(vid){
   LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!editDraft.keywords[c].includes(k)) editDraft.keywords[c].push(k); }); });
   editDraft.countries = editDraft.countries||[];
   r.countries.forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
-  render(); showToast();
+  render(); showToast(t('pasteDone'));
 }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function parseYouTubeId(url){
@@ -542,14 +542,14 @@ async function saveNoticeText(){
   const val = (document.getElementById('noticeEditArea')||{value:''}).value;
   try{
     await setDoc(noticeDocRef, {...noticeData, [noticeLang]: val}, {merge:true});
-    showToast();
+    showToast(NOTICE_EDIT_I18N[lang].saveOk);
   }catch(e){ alert(t('saveFail')(e.message)); }
 }
 async function deleteNoticeText(){
   if(!confirm(NOTICE_EDIT_I18N[lang].delConfirm)) return;
   try{
     await setDoc(noticeDocRef, {...noticeData, [noticeLang]: ''}, {merge:true});
-    showToast();
+    showToast(NOTICE_EDIT_I18N[lang].delOk);
   }catch(e){ alert(t('delFail')(e.message)); }
 }
 function renderNotice(){
@@ -814,7 +814,7 @@ function allMembersUsed(){
 }
 function toggleMemberFilter(m){ activeMembers.has(m) ? activeMembers.delete(m) : activeMembers.add(m); saveActiveMembers(); renderMemberRow(); render(); }
 
-function showToast(){ const el = document.getElementById('toast'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1400); }
+function showToast(msg){ const el = document.getElementById('toast'); if(msg) el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1400); }
 
 function render(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
