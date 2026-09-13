@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>logbook.zip</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+:root{--p:#6C4CF1;--bg:#FAF9FC;--surface:#fff;--ink:#1B1523;--muted:#77718a;--line:#ece9f3;--soft:#f1edff;--red:#f14c6c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{touch-action:manipulation}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,sans-serif}.app{max-width:560px;margin:auto;min-height:100vh}.top{padding:20px}.logo{font-size:20px;font-weight:800;margin-bottom:18px}.search{display:flex;gap:8px;background:#fff;border-radius:999px;padding:6px 8px 6px 16px;box-shadow:0 5px 20px #1e14300d}.search input{flex:1;border:0;outline:0;background:none;padding:11px 0;font:inherit}.search button,.btn{border:0;border-radius:999px;padding:11px 16px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.chips{display:flex;gap:8px;overflow:auto;padding-top:12px}.chip{white-space:nowrap;border:0;background:#fff;color:var(--muted);padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer}.chip.active{background:var(--ink);color:#fff}.content{padding:0 20px 40px}.card{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 8px 25px #1e14300b;margin-bottom:16px}.thumb{aspect-ratio:16/9;background:#111}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.body{padding:16px}.title{font-size:16px;font-weight:800;line-height:1.4}.meta{font-size:12px;color:var(--muted);margin-top:6px}.section{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.label{font-size:11px;color:var(--muted);font-weight:800;margin-bottom:8px}.pills{display:flex;flex-wrap:wrap;gap:6px}.pill{display:inline-flex;padding:7px 11px;border-radius:999px;background:var(--soft);color:var(--p);font-size:12px;font-weight:700}.empty{text-align:center;padding:80px 20px;color:var(--muted)}.admin{display:none;background:#fff;border-radius:20px;padding:16px;margin:0 20px 18px;box-shadow:0 8px 25px #1e14300b}.admin.open{display:block}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;background:var(--bg)}.field textarea{min-height:90px;resize:vertical}.row{display:flex;gap:8px}.row>*{flex:1}.actions{display:flex;gap:8px;justify-content:flex-end}.danger{background:#ffe9ee;color:var(--red)}.notice{font-size:12px;color:var(--muted);padding:10px 0}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="logo">logbook.zip</div>
+  <div class="search"><input id="q" placeholder="제목, 스케줄, 멤버, 검색어로 검색"><button onclick="runSearch()">검색</button></div>
+  <div class="chips" id="langChips"></div>
+  <div class="chips" id="memberChips"></div>
+</header>
+<section class="admin" id="adminPanel">
+  <div class="field"><label>연도</label><input id="year" inputmode="numeric" placeholder="2021"></div>
+  <div class="field"><label>제목</label><input id="title"></div>
+  <div class="field"><label>YouTube URL</label><input id="youtube"></div>
+  <div class="field"><label>나라</label><input id="country" placeholder="한국, 미국, 일본"></div>
+  <div class="field"><label>카테고리</label><input id="category" placeholder="공연, 방송, 인터뷰"></div>
+  <div class="field"><label>멤버</label><input id="members" placeholder="홍중, 성화, 윤호"></div>
+  <div class="field"><label>스케줄</label><textarea id="schedules" placeholder="한국어: 미국 LA 댄스 연습\n영어: LA dance practice\n중국어: 美国 LA 舞蹈练习\n일본어: アメリカ LA ダンス練習"></textarea></div>
+  <div class="field"><label>숨겨진 검색어</label><textarea id="keywords" placeholder="쉼표 또는 줄바꿈으로 구분"></textarea></div>
+  <div class="actions"><button class="btn danger" onclick="clearForm()">초기화</button><button class="btn" onclick="saveVideo()">저장</button></div>
+</section>
+<main class="content"><div id="list"></div></main>
+</div>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import {getFirestore,collection,onSnapshot,doc,setDoc,deleteDoc} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+const firebaseConfig={apiKey:'AIzaSyCCHZTbWa4P8eqnrFAvbQNbD_REe7mbWFA',authDomain:'logbook-1314d.firebaseapp.com',projectId:'logbook-1314d',storageBucket:'logbook-1314d.firebasestorage.app',messagingSenderId:'717744229059',appId:'1:717744229059:web:2691b2d1ad18117a82f076'};
+const app=initializeApp(firebaseConfig);const db=getFirestore(app);const col=collection(db,'videos');
+let videos=[];let lang='ko';let members=new Set();let editing=null;let admin=false;
+const byLang=v=>typeof v==='string'?v:(v?.[lang]||v?.ko||v?.en||v?.zh||v?.ja||'');
+const arr=v=>Array.isArray(v)?v:(typeof v==='string'?v.split(/[\n,]/).map(x=>x.trim()).filter(Boolean):[]);
+function text(v){return Array.isArray(v)?v.join(' '):byLang(v)}
+function normalize(v){return String(v||'').toLowerCase()}
+function allMembers(){const s=new Set();videos.forEach(v=>arr(v.members||v.member).forEach(x=>s.add(x)));return [...s].sort()}
+function renderChips(){document.getElementById('langChips').innerHTML=['ko','en','zh','ja'].map(x=>`<button class="chip ${lang===x?'active':''}" onclick="window.setLang('${x}')">${{ko:'한국어',en:'English',zh:'中文',ja:'日本語'}[x]}</button>`).join('');document.getElementById('memberChips').innerHTML=allMembers().map(m=>`<button class="chip ${members.has(m)?'active':''}" onclick="window.toggleMember(${JSON.stringify(m)})">${m}</button>`).join('')}
+function matches(v){const q=normalize(document.getElementById('q').value);if(members.size&&!arr(v.members||v.member).some(m=>members.has(m)))return false;if(!q)return true;const hay=[v.title,v.year,v.country,v.category,v.youtube,v.url,v.keywords,v.hiddenKeywords,...arr(v.members||v.member),...Object.values(v.schedule||{}),...Object.values(v.schedules||{}),...Object.values(v.scheduleNames||{})].flat().map(normalize).join(' ');return hay.includes(q)}
+function render(){renderChips();const list=document.getElementById('list');const rows=videos.filter(matches).sort((a,b)=>Number(b.year||0)-Number(a.year||0));list.innerHTML=rows.length?rows.map(card).join(''):`<div class="empty">등록된 영상이 없어.</div>`}
+function card(v){const yt=v.youtube||v.url||v.youtubeUrl||'';const thumb=yt.includes('youtu')?`https://i.ytimg.com/vi/${getYt(yt)}/hqdefault.jpg`:'';const schedules=v.schedule||v.schedules||{};const sched=[...arr(schedules.ko),...arr(schedules.en),...arr(schedules.zh),...arr(schedules.ja)];return `<article class="card"><div class="thumb">${thumb?`<a href="${yt}" target="_blank" rel="noopener"><img src="${thumb}" loading="lazy"></a>`:''}</div><div class="body"><div class="title">${esc(v.title||'')}</div><div class="meta">${esc(v.year||'')} ${v.country?'· '+esc(v.country):''} ${v.category?'· '+esc(v.category):''}</div>${arr(v.members||v.member).length?`<div class="section"><div class="label">MEMBERS</div><div class="pills">${arr(v.members||v.member).map(m=>`<span class="pill">${esc(m)}</span>`).join('')}</div></div>`:''}${sched.length?`<div class="section"><div class="label">SCHEDULE</div><div class="pills">${sched.map(s=>`<span class="pill">${esc(s)}</span>`).join('')}</div></div>`:''}</div></article>`}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function getYt(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{6,})/);return m?m[1]:''}
+window.setLang=x=>{lang=x;render()};window.toggleMember=m=>{members.has(m)?members.delete(m):members.add(m);render()};window.runSearch=render;document.getElementById('q').addEventListener('input',render);
+window.clearForm=()=>{['year','title','youtube','country','category','members','schedules','keywords'].forEach(id=>document.getElementById(id).value='');editing=null};
+window.saveVideo=async()=>{const id=editing||crypto.randomUUID();const v={year:document.getElementById('year').value.trim(),title:document.getElementById('title').value.trim(),youtube:document.getElementById('youtube').value.trim(),country:document.getElementById('country').value.split(',').map(x=>x.trim()).filter(Boolean).join(', '),category:document.getElementById('category').value.split(',').map(x=>x.trim()).filter(Boolean).join(', '),members:arr(document.getElementById('members').value),keywords:arr(document.getElementById('keywords').value)};const raw=document.getElementById('schedules').value.split(/\n/);const schedules={ko:[],en:[],zh:[],ja:[]};let current=null;for(const line of raw){const m=line.match(/^\s*(한국어|영어|중국어|일본어)\s*:\s*(.*)$/);if(m){current={한국어:'ko',영어:'en',중국어:'zh',일본어:'ja'}[m[1]];if(m[2].trim())schedules[current].push(m[2].trim())}else if(line.trim()&&current)schedules[current].push(line.trim())}v.schedules=schedules;await setDoc(doc(col,id),v,{merge:true});clearForm();admin=false;document.getElementById('adminPanel').classList.remove('open')};
+window.openAdmin=()=>{admin=!admin;document.getElementById('adminPanel').classList.toggle('open',admin)};
+window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a'){e.preventDefault();window.openAdmin()}});
+onSnapshot(col,s=>{videos=s.docs.map(d=>({id:d.id,...d.data()}));render()});
+window.openAdmin=()=>{admin=!admin;document.getElementById('adminPanel').classList.toggle('open',admin)};
+render();
+</script>
+</body></html>
