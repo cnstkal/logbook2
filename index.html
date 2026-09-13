@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 .icon-btn svg{width:18px;height:18px;}
 .hdr-sub{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 16px;}
 
-.search-shell{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-pill);padding:4px 16px 4px 18px;box-shadow:var(--shadow);}
+.search-shell{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-pill);padding:4px 26px 4px 18px;box-shadow:var(--shadow);}
 .search-shell svg{flex-shrink:0;color:var(--ink3);}
 .search-shell input{flex:1;border:none;outline:none;background:transparent;font:inherit;font-size:14.5px;color:var(--ink);padding:12px 0;}
 .search-shell input::placeholder{color:var(--ink3);}
@@ -426,9 +426,17 @@ function renderLangRow(){
   document.getElementById('langRow').innerHTML = LANGS.map(([code,label])=>
     `<button class="chip ${lang===code?'active':''}" onclick="setLang('${code}')">${label}</button>`).join('');
 }
+const EXCLUDE_ALL_I18N = { ko:'전체 제외', en:'Exclude All', zh:'排除全员', ja:'全員除外' };
+let excludeAllMembers = localStorage.getItem('excludeAllMembers') === '1';
+function toggleExcludeAllMembers(){
+  excludeAllMembers = !excludeAllMembers;
+  localStorage.setItem('excludeAllMembers', excludeAllMembers ? '1' : '0');
+  renderMemberRow(); render();
+}
 function renderMemberRow(){
   document.getElementById('memberRow').innerHTML = ATEEZ_MEMBERS.map(m=>
-    `<button class="chip member ${activeMembers.has(m)?'active':''}" onclick="toggleMemberFilter('${m}')">${mName(m)}</button>`).join('');
+    `<button class="chip member ${activeMembers.has(m)?'active':''}" onclick="toggleMemberFilter('${m}')">${mName(m)}</button>`).join('')
+    + `<button class="chip member ${excludeAllMembers?'active':''}" onclick="toggleExcludeAllMembers()">${EXCLUDE_ALL_I18N[lang]}</button>`;
 }
 function applyStaticText(){
   applyAdminVisibility();
@@ -611,7 +619,7 @@ function closeRequest(){ document.getElementById('requestOverlay').classList.rem
 function renderRequestBody(){
   const ri = REQUEST_I18N[lang];
   document.getElementById('requestBody').innerHTML = `
-    <textarea id="requestTextarea" rows="6" placeholder="${escapeHtml(ri.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
+    <textarea id="requestTextarea" rows="3" placeholder="${escapeHtml(ri.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
     <div class="add-actions" style="margin-top:10px;">
       <button type="button" class="btn-solid" onclick="submitRequest()">${ri.submit}</button>
     </div>`;
@@ -880,6 +888,7 @@ function render(){
 
   let list = [...videos];
   if(activeMembers.size){ const amArr=[...activeMembers]; list = list.filter(v=>amArr.every(m=>(v.members||[]).includes(m))); }
+  if(excludeAllMembers){ list = list.filter(v=>(v.members||[]).length !== ATEEZ_MEMBERS.length); }
   if(q){
     const nq = norm(q);
     list = list.filter(v=>
@@ -995,7 +1004,7 @@ Object.assign(window, {
   addSchedToDraft, removeDraftSched, closeAddBox, addVideo, toggleAddBox,
   startEdit, cancelEdit, saveEdit, editField, toggleEditMember, toggleEditSelectAll,
   addEditSched, removeEditSchedAt, startInlineSched, saveInlineSched, cancelInlineSched,
-  deleteVideo, toggleMemberFilter, render,
+  deleteVideo, toggleMemberFilter, toggleExcludeAllMembers, render,
   addKwToDraft, removeDraftKw, addEditKw, removeEditKw, setLang,
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
   addEditCountry, removeEditCountry, setSort,
