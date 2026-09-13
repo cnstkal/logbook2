@@ -215,7 +215,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
         </div>
         <div class="field">
           <label id="pasteLabel">일괄 붙여넣기</label>
-          <textarea id="pasteDraftInput" rows="4" placeholder="스케줄
+          <textarea id="pasteDraftInput" rows="4" onpaste="setTimeout(applyPasteDraft,50)" placeholder="스케줄
 
 한국어: 서울콘서트
 영어: Seoul Concert
@@ -872,7 +872,7 @@ function addKwToDraft(){
   splitTags(inp.value).forEach(kw=>{ if(!draftKw[lang].includes(kw)) draftKw[lang].push(kw); });
   inp.value=''; renderDraftKw(); inp.focus();
 }
-function removeDraftKw(kw){ draftKw[lang] = draftKw[lang].filter(k=>k!==kw); renderDraftKw(); }
+function removeDraftKw(c,kw){ draftKw[c] = draftKw[c].filter(k=>k!==kw); renderDraftKw(); }
 function addCountryToDraft(){
   const inp = document.getElementById('countryInput');
   splitTags(inp.value).forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
@@ -884,8 +884,10 @@ function renderDraftCountry(){
     `<span class="tag-pill">${escapeHtml(translateCountry(c))}<button onclick="removeDraftCountry('${c.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
 }
 function renderDraftKw(){
-  document.getElementById('draftKwList').innerHTML = draftKw[lang].map(k=>
-    `<span class="tag-pill">${escapeHtml(k)}<button onclick="removeDraftKw('${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
+  const items = [];
+  LANG_CODES.forEach(c=> draftKw[c].forEach(k=> items.push({c,k})));
+  document.getElementById('draftKwList').innerHTML = items.map(({c,k})=>
+    `<span class="tag-pill">${escapeHtml(k)}<button onclick="removeDraftKw('${c}','${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('');
 }
 function renderDraftSched(){
   document.getElementById('draftSchedList').innerHTML = draftSched.map((k,idx)=>
@@ -952,7 +954,7 @@ function addEditKw(vid){
   render();
   const next = document.getElementById('ek-'+vid); if(next) next.focus();
 }
-function removeEditKw(kw){ if(editDraft) editDraft.keywords[lang] = (editDraft.keywords[lang]||[]).filter(k=>k!==kw); render(); }
+function removeEditKw(c,kw){ if(editDraft) editDraft.keywords[c] = (editDraft.keywords[c]||[]).filter(k=>k!==kw); render(); }
 function editField(field, val){ if(editDraft) editDraft[field]=val; }
 function toggleEditMember(name){ if(!editDraft) return; editDraft.members = editDraft.members.includes(name) ? editDraft.members.filter(m=>m!==name) : [...editDraft.members,name]; render(); }
 function toggleEditSelectAll(){ if(!editDraft) return; editDraft.members = editDraft.members.length===ATEEZ_MEMBERS.length ? [] : [...ATEEZ_MEMBERS]; render(); }
@@ -1033,7 +1035,8 @@ function render(){
     const src = editing ? editDraft : v;
     const vMembers = editing ? (src.members || []) : sortMembersDisplay(src.members || []);
     const vSched = src.schedule || [];
-    const vKw = normalizeKw(src.keywords)[lang] || [];
+    const vKw = normalizeKw(src.keywords);
+    const vKwAll = editing ? LANG_CODES.flatMap(c=>(vKw[c]||[]).map(k=>({c,k}))) : (vKw[lang] || []);
     const vCategories = src.categories || (src.category ? [src.category] : []);
     const vCountries = src.countries || (src.country ? [src.country] : []);
 
@@ -1085,7 +1088,7 @@ function render(){
       : '';
 
     const kwSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('kwLabel')}</div><div class="row-flex">${
-        vKw.map(k=>`<span class="sched-pill editing">${escapeHtml(k)}<button onclick="removeEditKw('${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`
+        vKwAll.map(({c,k})=>`<span class="sched-pill editing">${escapeHtml(k)}<button onclick="removeEditKw('${c}','${k.replace(/'/g,"\\'")}')">✕</button></span>`).join('') || `<span class="empty-txt">${t('noSchedOnCard')}</span>`
       }</div><div class="add-sched"><input id="ek-${v.id}" type="text" placeholder="${t('kwPh')}" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditKw('${v.id}')}"><button onclick="addEditKw('${v.id}')">+ ${t('add')}</button></div></div>`;
 
     const countrySection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('countryLabel')}</div><div class="row-flex">${
@@ -1094,7 +1097,7 @@ function render(){
 
     const catSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('catLabel')}</div><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div>`;
 
-    const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" placeholder="스케줄
+    const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" onpaste="setTimeout(()=>applyPasteEdit('${v.id}'),50)" placeholder="스케줄
 
 한국어: 서울콘서트
 영어: Seoul Concert
