@@ -142,9 +142,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 @media(max-width:600px){input,select,textarea{font-size:16px !important;}}
 .notice-overlay{position:fixed;inset:0;background:rgba(20,15,35,.45);display:none;align-items:center;justify-content:center;z-index:70;padding:20px;}
 .notice-overlay.show{display:flex;}
-.notice-sheet{position:relative;background:var(--surface);width:100%;max-width:480px;border-radius:24px;max-height:80vh;overflow-y:auto;padding:22px 20px 30px;}
+.notice-sheet{position:relative;background:var(--surface);width:100%;max-width:480px;border-radius:24px;max-height:80vh;overflow-y:auto;padding:20px 20px 20px;}
 @media(min-width:540px){.notice-overlay{align-items:center;} .notice-sheet{border-radius:24px;max-height:75vh;}}
-.notice-title{font-size:18px;font-weight:800;margin-bottom:14px;}
+.notice-title{font-size:18px;font-weight:800;margin-bottom:8px;}
 .notice-close{position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;color:var(--ink3);display:flex;}
 .notice-lang-row{display:flex;gap:6px;margin-bottom:14px;}
 .notice-lang-row button{border:none;background:var(--bg);color:var(--ink2);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
@@ -163,6 +163,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
         </button>
         <button class="icon-btn" id="requestBtn" onclick="openRequest()" title="request">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
+        </button>
+        <button class="icon-btn" id="requestsAdminBtn" onclick="openRequestsAdmin()" title="requests inbox" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        </button>
+        <button class="icon-btn" id="updateNoticeAdminBtn" onclick="openUpdateNoticeAdmin()" title="update notice" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
         </button>
         <button class="icon-btn" id="adminBtn" onclick="toggleAdmin()" title="admin">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
@@ -279,6 +285,37 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
     </button>
     <div class="notice-title" id="requestTitle">요청하기</div>
     <div class="notice-body" id="requestBody"></div>
+  </div>
+</div>
+
+<div class="notice-overlay" id="requestsAdminOverlay" onclick="if(event.target===this)closeRequestsAdmin()">
+  <div class="notice-sheet">
+    <button class="notice-close" onclick="closeRequestsAdmin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="notice-title" id="requestsAdminTitle">요청함</div>
+    <div class="notice-body" id="requestsAdminBody"></div>
+  </div>
+</div>
+
+<div class="notice-overlay" id="updateNoticeOverlay" onclick="if(event.target===this)closeUpdateNotice()">
+  <div class="notice-sheet">
+    <button class="notice-close" onclick="closeUpdateNotice()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="notice-title" id="updateNoticeTitle">업데이트 안내</div>
+    <div class="notice-body" id="updateNoticeBody"></div>
+  </div>
+</div>
+
+<div class="notice-overlay" id="updateNoticeAdminOverlay" onclick="if(event.target===this)closeUpdateNoticeAdmin()">
+  <div class="notice-sheet">
+    <button class="notice-close" onclick="closeUpdateNoticeAdmin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="notice-title" id="updateNoticeAdminTitle">업데이트 공지 작성</div>
+    <div class="notice-lang-row" id="updateNoticeAdminLangRow"></div>
+    <div class="notice-body" id="updateNoticeAdminBody"></div>
   </div>
 </div>
 
@@ -619,8 +656,8 @@ function closeRequest(){ document.getElementById('requestOverlay').classList.rem
 function renderRequestBody(){
   const ri = REQUEST_I18N[lang];
   document.getElementById('requestBody').innerHTML = `
-    <textarea id="requestTextarea" rows="3" placeholder="${escapeHtml(ri.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
-    <div class="add-actions" style="margin-top:10px;">
+    <textarea id="requestTextarea" rows="2" placeholder="${escapeHtml(ri.ph)}" style="width:100%;min-height:60px;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;"></textarea>
+    <div class="add-actions" style="margin-top:8px;">
       <button type="button" class="btn-solid" onclick="submitRequest()">${ri.submit}</button>
     </div>`;
 }
@@ -634,6 +671,112 @@ async function submitRequest(){
     showToast(ri.ok);
     closeRequest();
   }catch(e){ showToast(ri.fail); }
+}
+
+const REQUESTS_ADMIN_I18N = { ko:{title:'요청함',empty:'아직 들어온 요청이 없어요.',del:'삭제'}, en:{title:'Requests',empty:'No requests yet.',del:'Delete'}, zh:{title:'请求箱',empty:'暂无请求。',del:'删除'}, ja:{title:'リクエスト一覧',empty:'まだリクエストはありません。',del:'削除'} };
+let requestsList = [];
+function subscribeRequests(){
+  onSnapshot(requestsCol, (snap)=>{
+    requestsList = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(document.getElementById('requestsAdminOverlay').classList.contains('show')) renderRequestsAdmin();
+  }, (err)=>{ console.error(err); });
+}
+function openRequestsAdmin(){
+  renderRequestsAdmin();
+  document.getElementById('requestsAdminOverlay').classList.add('show');
+}
+function closeRequestsAdmin(){ document.getElementById('requestsAdminOverlay').classList.remove('show'); }
+async function deleteRequestItem(id){
+  try{ await deleteDoc(doc(db,"requests",id)); }catch(e){}
+}
+function renderRequestsAdmin(){
+  const ri = REQUESTS_ADMIN_I18N[lang];
+  document.getElementById('requestsAdminTitle').textContent = ri.title;
+  if(!requestsList.length){
+    document.getElementById('requestsAdminBody').innerHTML = `<p style="color:var(--ink3);font-size:13.5px;">${ri.empty}</p>`;
+    return;
+  }
+  document.getElementById('requestsAdminBody').innerHTML = requestsList.map(r=>{
+    const dt = r.createdAt ? new Date(r.createdAt).toLocaleString() : '';
+    return `<div style="border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;">${escapeHtml(dt)} · ${escapeHtml((r.lang||'').toUpperCase())}</div>
+      <div style="font-size:13.5px;color:var(--ink);white-space:pre-wrap;line-height:1.6;">${escapeHtml(r.text||'')}</div>
+      <div class="add-actions" style="margin-top:8px;"><button type="button" class="btn-danger" onclick="deleteRequestItem('${r.id}')">${ri.del}</button></div>
+    </div>`;
+  }).join('');
+}
+
+const updateNoticeDocRef = doc(db, "config", "updateNotice");
+let updateNoticeData = null;
+let updateNoticeShownThisSession = false;
+let updateNoticeAdminLang = lang;
+const UPDATE_NOTICE_I18N = { ko:'업데이트 안내', en:'Update', zh:'更新公告', ja:'アップデートのお知らせ' };
+const UPDATE_NOTICE_BTN_I18N = { ko:{close:'닫기',forever:'영원히 안 보기'}, en:{close:'Close',forever:"Don't show again"}, zh:{close:'关闭',forever:'不再显示'}, ja:{close:'閉じる',forever:'今後表示しない'} };
+function subscribeUpdateNotice(){
+  onSnapshot(updateNoticeDocRef, (snap)=>{
+    updateNoticeData = snap.exists() ? snap.data() : null;
+    maybeShowUpdateNotice();
+    if(document.getElementById('updateNoticeAdminOverlay').classList.contains('show')) renderUpdateNoticeAdmin();
+  }, (err)=>{ console.error(err); });
+}
+function maybeShowUpdateNotice(){
+  if(updateNoticeShownThisSession || !updateNoticeData) return;
+  const version = updateNoticeData.version;
+  if(!version) return;
+  const text = updateNoticeData[lang] || updateNoticeData.ko || '';
+  if(!text) return;
+  const dismissed = Number(localStorage.getItem('updateNoticeDismissedVersion') || 0);
+  if(dismissed >= version) return;
+  updateNoticeShownThisSession = true;
+  document.getElementById('updateNoticeTitle').textContent = UPDATE_NOTICE_I18N[lang];
+  const bi = UPDATE_NOTICE_BTN_I18N[lang];
+  document.getElementById('updateNoticeBody').innerHTML = `
+    <div class="notice-view" style="margin-bottom:16px;">${escapeHtml(text)}</div>
+    <div class="add-actions" style="justify-content:space-between;">
+      <button type="button" class="btn-ghost" onclick="dismissUpdateNoticeForever()">${bi.forever}</button>
+      <button type="button" class="btn-solid" onclick="closeUpdateNotice()">${bi.close}</button>
+    </div>`;
+  document.getElementById('updateNoticeOverlay').classList.add('show');
+}
+function closeUpdateNotice(){ document.getElementById('updateNoticeOverlay').classList.remove('show'); }
+function dismissUpdateNoticeForever(){
+  if(updateNoticeData && updateNoticeData.version) localStorage.setItem('updateNoticeDismissedVersion', String(updateNoticeData.version));
+  closeUpdateNotice();
+}
+function openUpdateNoticeAdmin(){
+  updateNoticeAdminLang = lang;
+  renderUpdateNoticeAdmin();
+  document.getElementById('updateNoticeAdminOverlay').classList.add('show');
+}
+function closeUpdateNoticeAdmin(){ document.getElementById('updateNoticeAdminOverlay').classList.remove('show'); }
+function setUpdateNoticeAdminLang(l){ updateNoticeAdminLang = l; renderUpdateNoticeAdmin(); }
+const UPDATE_NOTICE_ADMIN_TITLE_I18N = { ko:'업데이트 공지 작성', en:'Compose Update Notice', zh:'撰写更新公告', ja:'アップデート告知作成' };
+function renderUpdateNoticeAdmin(){
+  document.getElementById('updateNoticeAdminTitle').textContent = UPDATE_NOTICE_ADMIN_TITLE_I18N[lang];
+  document.getElementById('updateNoticeAdminLangRow').innerHTML = LANGS.map(([code,label])=>
+    `<button class="${updateNoticeAdminLang===code?'active':''}" onclick="setUpdateNoticeAdminLang('${code}')">${label}</button>`).join('');
+  const cur = (updateNoticeData && updateNoticeData[updateNoticeAdminLang]) || '';
+  const ei = NOTICE_EDIT_I18N[lang];
+  document.getElementById('updateNoticeAdminBody').innerHTML = `
+    <textarea id="updateNoticeAdminArea" rows="4" placeholder="${escapeHtml(ei.ph)}" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.6;">${escapeHtml(cur)}</textarea>
+    <div class="add-actions" style="margin-top:10px;">
+      <button type="button" class="btn-danger" onclick="deleteUpdateNoticeLang()">${ei.del}</button>
+      <button type="button" class="btn-solid" onclick="saveUpdateNotice()">${ei.save}</button>
+    </div>`;
+}
+async function saveUpdateNotice(){
+  const val = (document.getElementById('updateNoticeAdminArea')||{value:''}).value;
+  try{
+    await setDoc(updateNoticeDocRef, {...(updateNoticeData||{}), [updateNoticeAdminLang]: val, version: Date.now()}, {merge:true});
+    showToast(NOTICE_EDIT_I18N[lang].saveOk);
+  }catch(e){ alert(t('saveFail')(e.message)); }
+}
+async function deleteUpdateNoticeLang(){
+  if(!confirm(NOTICE_EDIT_I18N[lang].delConfirm)) return;
+  try{
+    await setDoc(updateNoticeDocRef, {...(updateNoticeData||{}), [updateNoticeAdminLang]: ''}, {merge:true});
+    showToast(NOTICE_EDIT_I18N[lang].delOk);
+  }catch(e){ alert(t('delFail')(e.message)); }
 }
 
 
@@ -660,6 +803,8 @@ function applyAdminVisibility(){
   document.getElementById('adminBtn').style.display = (isAdmin || isAdminEntryUrl()) ? 'flex' : 'none';
   document.getElementById('adminBtn').title = isAdmin ? '관리자 로그아웃' : '관리자 로그인';
   document.getElementById('addBoxCard').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('requestsAdminBtn').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('updateNoticeAdminBtn').style.display = isAdmin ? 'flex' : 'none';
 }
 const googleProvider = new GoogleAuthProvider();
 async function toggleAdmin(){
@@ -681,12 +826,15 @@ async function toggleAdmin(){
     }
   }
 }
+let wasAdmin = false;
 onAuthStateChanged(auth, (user)=>{
   isAdmin = isAdminUser(user);
   if(!isAdmin){ editingId = null; editDraft = null; }
   applyAdminVisibility();
   render();
   if(document.getElementById('noticeOverlay').classList.contains('show')) renderNotice();
+  if(isAdmin && !wasAdmin){ openRequestsAdmin(); }
+  wasAdmin = isAdmin;
 });
 function toggleAddBox(){
   const body = document.getElementById('addBody'), head = document.getElementById('addHead');
@@ -1010,6 +1158,9 @@ Object.assign(window, {
   addEditCountry, removeEditCountry, setSort,
   openNotice, closeNotice, setNoticeLang, saveNoticeText, deleteNoticeText,
   openRequest, closeRequest, submitRequest,
+  openRequestsAdmin, closeRequestsAdmin, deleteRequestItem,
+  openUpdateNoticeAdmin, closeUpdateNoticeAdmin, setUpdateNoticeAdminLang, saveUpdateNotice, deleteUpdateNoticeLang,
+  closeUpdateNotice, dismissUpdateNoticeForever,
   applyPasteDraft, applyPasteEdit, toggleFilterPanel, toggleDraftCatPanel, toggleEditCatPanel
 });
 
@@ -1022,6 +1173,8 @@ renderDraftKw();
 render();
 subscribeVideos();
 subscribeNotice();
+subscribeRequests();
+subscribeUpdateNotice();
 </script>
 </body>
 </html>
