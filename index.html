@@ -22,8 +22,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
 /* ---- Header ---- */
 .topbar{position:static;z-index:30;background:var(--bg);padding:18px 20px 10px;}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.logo{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;letter-spacing:-.03em;}
-.logo .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--p),#A78BFA);flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:9px;font-size:25px;font-weight:800;letter-spacing:-.03em;}
+.logo .dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--p),#A78BFA);flex-shrink:0;}
 .icon-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);position:relative;}
 .icon-btn.on{background:var(--ink);color:#fff;}
 .icon-btn svg{width:18px;height:18px;}
@@ -181,6 +181,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard',san
           <div class="field-hint" id="fetchStatus">링크를 입력하면 제목을 자동으로 가져와요.</div>
         </div>
         <div class="field">
+          <label id="pasteLabel">일괄 붙여넣기</label>
+          <textarea id="pasteDraftInput" rows="4" placeholder="형식대로 붙여넣고 적용을 눌러주세요" style="width:100%;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-sm);font-size:13px;font-family:inherit;color:var(--ink);outline:none;resize:vertical;"></textarea>
+          <div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" id="pasteDraftBtn" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteDraft()">적용</button></div>
+        </div>
+        <div class="field">
           <label id="yearLabel">업로드 연도</label>
           <input type="number" id="yearInput" placeholder="예: 2024" min="2000" max="2100">
           <div class="field-hint" id="yearHint">유튜브 자동 감지가 불가능한 경우 직접 입력해주세요.</div>
@@ -331,10 +336,10 @@ let lang = localStorage.getItem('lang') || 'ko';
 
 const LANGS = [['ko','한국어'],['en','English'],['zh','中文'],['ja','日本語']];
 const I18N = {
-  ko:{title:'영상 아카이브',sub:'유튜브 링크를 등록하고 출연 멤버와 스케줄로 정리해보세요.',adminOn:'관리자 모드 끄기',adminOff:'관리자 모드',searchPh:'멤버 또는 스케줄로 검색…',searchBtn:'검색',addSummary:'새 영상 등록하기',urlLabel:'유튜브 링크',fetchDefault:'링크를 입력하면 제목을 자동으로 가져와요.',fetching:'제목을 가져오는 중…',fetched:'제목을 가져왔어요. 다르면 직접 수정해주세요.',fetchFail:'제목을 자동으로 가져오지 못했어요. 직접 입력해주세요.',titleLabel:'제목 (필요하면 수정 가능)',memberLabel:'출연 멤버',selectAll:'전체선택',deselectAll:'전체해제',schedLabel:'스케줄',add:'추가',kwLabel:'숨겨진 검색어',kwPh:'검색만 되고 화면엔 안 보여요',kwHint:'여기 추가한 단어는 검색에는 걸리지만 카드에는 표시되지 않아요.',cancel:'취소',submit:'등록',submitting:'등록 중…',noMembers:'아직 등록된 멤버가 없어요',statLine:(v,s,m)=>[[v,'영상'],[s,'스케줄'],[m,'멤버']],emptyNoVideoTitle:'아직 등록된 영상이 없어요',emptyNoVideoDesc:'관리자 모드를 켜고 첫 영상을 등록해보세요.',emptyNoResultTitle:'검색 결과가 없어요',emptyNoResultDesc:'다른 조건으로 다시 검색해보세요.',memberSection:'출연 멤버',schedSection:'스케줄',metaLine:(s,m)=>`스케줄 ${s}개 · 출연 ${m}명`,metaLineMember:(m)=>`출연 ${m}명`,noMemberOnCard:'등록된 멤버가 없습니다.',noSchedOnCard:'등록된 스케줄이 없습니다.',schedPhEdit:'스케줄 입력…',save:'저장',cancelEdit:'취소',edit:'수정',del:'삭제',delConfirm:'이 영상을 삭제할까요?',pwPrompt:'관리자 비밀번호를 입력하세요',pwWrong:'비밀번호가 올바르지 않아요.',invalidUrl:'유효한 유튜브 링크를 입력해주세요.',noTitle:id=>'(제목 없음 · '+id+')',saveFail:m=>'저장에 실패했어요: '+m,delFail:m=>'삭제에 실패했어요: '+m,loadFail:m=>'데이터를 불러오지 못했어요: '+m,saving:'저장 중…',countryLabel:'나라',countryHint:'키워드처럼 검색에만 사용되고 카드에는 표시되지 않아요.',catLabel:'카테고리',cats:{concert:'콘서트',show:'행사',photobook:'화보',behind:'비하인드',musicshow:'음악방송',event:'팬사인회',offline:'오프라인 이벤트',etc:'기타'}},
-  en:{title:'Video Archive',sub:'Register YouTube links and organize them by member and schedule.',adminOn:'Exit Admin Mode',adminOff:'Admin Mode',searchPh:'Search by member or schedule…',searchBtn:'Search',addSummary:'Add New Video',urlLabel:'YouTube Link',fetchDefault:'Paste a link to auto-fill the title.',fetching:'Fetching title…',fetched:'Title fetched. Edit if needed.',fetchFail:'Could not auto-fetch title.',titleLabel:'Title',memberLabel:'Featured Members',selectAll:'Select All',deselectAll:'Deselect All',schedLabel:'Schedule',add:'Add',kwLabel:'Hidden Keywords',kwPh:'Searchable but not shown',kwHint:'Words added here are searchable but not displayed.',cancel:'Cancel',submit:'Add',submitting:'Adding…',noMembers:'No members registered yet',statLine:(v,s,m)=>[[v,'Videos'],[s,'Schedules'],[m,'Members']],emptyNoVideoTitle:'No videos yet',emptyNoVideoDesc:'Turn on admin mode and add your first video.',emptyNoResultTitle:'No results found',emptyNoResultDesc:'Try a different search.',memberSection:'Featured Members',schedSection:'Schedule',metaLine:(s,m)=>`${s} schedules · ${m} members`,metaLineMember:(m)=>`${m} members`,noMemberOnCard:'No members registered.',noSchedOnCard:'No schedules registered.',schedPhEdit:'Type a schedule…',save:'Save',cancelEdit:'Cancel',edit:'Edit',del:'Delete',delConfirm:'Delete this video?',pwPrompt:'Enter admin password',pwWrong:'Incorrect password.',invalidUrl:'Please enter a valid YouTube link.',noTitle:id=>'(No title · '+id+')',saveFail:m=>'Save failed: '+m,delFail:m=>'Delete failed: '+m,loadFail:m=>'Failed to load: '+m,saving:'Saving…',countryLabel:'Country',countryHint:'Used for search only, not shown on the card.',catLabel:'Category',cats:{concert:'Concert',show:'Show',photobook:'Photobook',behind:'Behind',musicshow:'Music Show',event:'Fan Sign',offline:'Offline Event',etc:'Other'}},
-  zh:{title:'视频档案',sub:'注册YouTube链接，按出演成员和日程整理。',adminOn:'退出管理模式',adminOff:'管理模式',searchPh:'按成员或日程搜索…',searchBtn:'搜索',addSummary:'添加新视频',urlLabel:'YouTube链接',fetchDefault:'输入链接后自动获取标题。',fetching:'正在获取标题…',fetched:'已获取标题。',fetchFail:'未能自动获取标题。',titleLabel:'标题',memberLabel:'出演成员',selectAll:'全选',deselectAll:'取消全选',schedLabel:'日程',add:'添加',kwLabel:'隐藏搜索词',kwPh:'仅用于搜索，不会显示',kwHint:'仅可搜索，不会显示在卡片上。',cancel:'取消',submit:'添加',submitting:'添加中…',noMembers:'尚未注册成员',statLine:(v,s,m)=>[[v,'视频'],[s,'日程'],[m,'成员']],emptyNoVideoTitle:'还没有视频',emptyNoVideoDesc:'开启管理模式并添加第一个视频。',emptyNoResultTitle:'没有搜索结果',emptyNoResultDesc:'请尝试其他搜索条件。',memberSection:'出演成员',schedSection:'日程',metaLine:(s,m)=>`日程 ${s}个 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'暂无注册成员。',noSchedOnCard:'暂无注册日程。',schedPhEdit:'输入日程…',save:'保存',cancelEdit:'取消',edit:'编辑',del:'删除',delConfirm:'要删除这个视频吗？',pwPrompt:'请输入管理员密码',pwWrong:'密码不正确。',invalidUrl:'请输入有效的YouTube链接。',noTitle:id=>'(无标题 · '+id+')',saveFail:m=>'保存失败: '+m,delFail:m=>'删除失败: '+m,loadFail:m=>'加载失败: '+m,saving:'保存中…',countryLabel:'国家',countryHint:'仅用于搜索，不会显示。',catLabel:'分类',cats:{concert:'演唱会',show:'公演',photobook:'画报',behind:'幕后',musicshow:'音乐节目',event:'粉丝签名会',offline:'线下活动',etc:'其他'}},
-  ja:{title:'動画アーカイブ',sub:'YouTubeリンクを登録し、出演メンバーとスケジュールで整理しましょう。',adminOn:'管理者モード終了',adminOff:'管理者モード',searchPh:'メンバーまたはスケジュールで検索…',searchBtn:'検索',addSummary:'新しい動画を登録',urlLabel:'YouTubeリンク',fetchDefault:'リンクを入力すると自動でタイトルを取得します。',fetching:'タイトルを取得中…',fetched:'タイトルを取得しました。',fetchFail:'タイトルを自動取得できませんでした。',titleLabel:'タイトル',memberLabel:'出演メンバー',selectAll:'全選択',deselectAll:'全解除',schedLabel:'スケジュール',add:'追加',kwLabel:'非表示検索ワード',kwPh:'検索のみ・画面には表示されません',kwHint:'カードには表示されません。',cancel:'キャンセル',submit:'登録',submitting:'登録中…',noMembers:'まだ登録されたメンバーがいません',statLine:(v,s,m)=>[[v,'動画'],[s,'スケジュール'],[m,'メンバー']],emptyNoVideoTitle:'まだ動画がありません',emptyNoVideoDesc:'管理者モードをオンにして最初の動画を登録してください。',emptyNoResultTitle:'検索結果がありません',emptyNoResultDesc:'別の条件で検索してみてください。',memberSection:'出演メンバー',schedSection:'スケジュール',metaLine:(s,m)=>`スケジュール ${s}件 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'登録されたメンバーがいません。',noSchedOnCard:'登録されたスケジュールがありません。',schedPhEdit:'スケジュールを入力…',save:'保存',cancelEdit:'キャンセル',edit:'編集',del:'削除',delConfirm:'この動画を削除しますか？',pwPrompt:'管理者パスワードを入力してください',pwWrong:'パスワードが正しくありません。',invalidUrl:'有効なYouTubeリンクを入力してください。',noTitle:id=>'(タイトルなし · '+id+')',saveFail:m=>'保存に失敗しました: '+m,delFail:m=>'削除に失敗しました: '+m,loadFail:m=>'読み込みに失敗しました: '+m,saving:'保存中…',countryLabel:'国',countryHint:'カードには表示されません。',catLabel:'カテゴリー',cats:{concert:'コンサート',show:'公演',photobook:'グラビア',behind:'ビハインド',musicshow:'音楽番組',event:'ファンサイン会',offline:'オフラインイベント',etc:'その他'}}
+  ko:{title:'영상 아카이브',sub:'유튜브 링크를 등록하고 출연 멤버와 스케줄로 정리해보세요.',adminOn:'관리자 모드 끄기',adminOff:'관리자 모드',searchPh:'멤버 또는 스케줄로 검색…',searchBtn:'검색',addSummary:'새 영상 등록하기',urlLabel:'유튜브 링크',fetchDefault:'링크를 입력하면 제목을 자동으로 가져와요.',fetching:'제목을 가져오는 중…',fetched:'제목을 가져왔어요. 다르면 직접 수정해주세요.',fetchFail:'제목을 자동으로 가져오지 못했어요. 직접 입력해주세요.',titleLabel:'제목 (필요하면 수정 가능)',memberLabel:'출연 멤버',selectAll:'전체선택',deselectAll:'전체해제',schedLabel:'스케줄',add:'추가',kwLabel:'숨겨진 검색어',kwPh:'검색만 되고 화면엔 안 보여요',kwHint:'여기 추가한 단어는 검색에는 걸리지만 카드에는 표시되지 않아요.',cancel:'취소',submit:'등록',submitting:'등록 중…',noMembers:'아직 등록된 멤버가 없어요',allMembers:'전체',pasteLabel:'일괄 붙여넣기',pasteApply:'적용',pasteDone:'붙여넣기 적용됨',statLine:(v,s,m)=>[[v,'영상'],[s,'스케줄'],[m,'멤버']],emptyNoVideoTitle:'아직 등록된 영상이 없어요',emptyNoVideoDesc:'관리자 모드를 켜고 첫 영상을 등록해보세요.',emptyNoResultTitle:'검색 결과가 없어요',emptyNoResultDesc:'다른 조건으로 다시 검색해보세요.',memberSection:'출연 멤버',schedSection:'스케줄',metaLine:(s,m)=>`스케줄 ${s}개 · 출연 ${m}명`,metaLineMember:(m)=>`출연 ${m}명`,noMemberOnCard:'등록된 멤버가 없습니다.',noSchedOnCard:'등록된 스케줄이 없습니다.',schedPhEdit:'스케줄 입력…',save:'저장',cancelEdit:'취소',edit:'수정',del:'삭제',delConfirm:'이 영상을 삭제할까요?',pwPrompt:'관리자 비밀번호를 입력하세요',pwWrong:'비밀번호가 올바르지 않아요.',invalidUrl:'유효한 유튜브 링크를 입력해주세요.',noTitle:id=>'(제목 없음 · '+id+')',saveFail:m=>'저장에 실패했어요: '+m,delFail:m=>'삭제에 실패했어요: '+m,loadFail:m=>'데이터를 불러오지 못했어요: '+m,saving:'저장 중…',countryLabel:'나라',countryHint:'키워드처럼 검색에만 사용되고 카드에는 표시되지 않아요.',catLabel:'카테고리',cats:{concert:'콘서트',show:'행사',photobook:'화보',behind:'비하인드',musicshow:'음악방송',event:'팬사인회',offline:'오프라인 이벤트',etc:'기타'}},
+  en:{title:'Video Archive',sub:'Register YouTube links and organize them by member and schedule.',adminOn:'Exit Admin Mode',adminOff:'Admin Mode',searchPh:'Search by member or schedule…',searchBtn:'Search',addSummary:'Add New Video',urlLabel:'YouTube Link',fetchDefault:'Paste a link to auto-fill the title.',fetching:'Fetching title…',fetched:'Title fetched. Edit if needed.',fetchFail:'Could not auto-fetch title.',titleLabel:'Title',memberLabel:'Featured Members',selectAll:'Select All',deselectAll:'Deselect All',schedLabel:'Schedule',add:'Add',kwLabel:'Hidden Keywords',kwPh:'Searchable but not shown',kwHint:'Words added here are searchable but not displayed.',cancel:'Cancel',submit:'Add',submitting:'Adding…',noMembers:'No members registered yet',allMembers:'All',pasteLabel:'Bulk Paste',pasteApply:'Apply',pasteDone:'Paste applied',statLine:(v,s,m)=>[[v,'Videos'],[s,'Schedules'],[m,'Members']],emptyNoVideoTitle:'No videos yet',emptyNoVideoDesc:'Turn on admin mode and add your first video.',emptyNoResultTitle:'No results found',emptyNoResultDesc:'Try a different search.',memberSection:'Featured Members',schedSection:'Schedule',metaLine:(s,m)=>`${s} schedules · ${m} members`,metaLineMember:(m)=>`${m} members`,noMemberOnCard:'No members registered.',noSchedOnCard:'No schedules registered.',schedPhEdit:'Type a schedule…',save:'Save',cancelEdit:'Cancel',edit:'Edit',del:'Delete',delConfirm:'Delete this video?',pwPrompt:'Enter admin password',pwWrong:'Incorrect password.',invalidUrl:'Please enter a valid YouTube link.',noTitle:id=>'(No title · '+id+')',saveFail:m=>'Save failed: '+m,delFail:m=>'Delete failed: '+m,loadFail:m=>'Failed to load: '+m,saving:'Saving…',countryLabel:'Country',countryHint:'Used for search only, not shown on the card.',catLabel:'Category',cats:{concert:'Concert',show:'Show',photobook:'Photobook',behind:'Behind',musicshow:'Music Show',event:'Fan Sign',offline:'Offline Event',etc:'Other'}},
+  zh:{title:'视频档案',sub:'注册YouTube链接，按出演成员和日程整理。',adminOn:'退出管理模式',adminOff:'管理模式',searchPh:'按成员或日程搜索…',searchBtn:'搜索',addSummary:'添加新视频',urlLabel:'YouTube链接',fetchDefault:'输入链接后自动获取标题。',fetching:'正在获取标题…',fetched:'已获取标题。',fetchFail:'未能自动获取标题。',titleLabel:'标题',memberLabel:'出演成员',selectAll:'全选',deselectAll:'取消全选',schedLabel:'日程',add:'添加',kwLabel:'隐藏搜索词',kwPh:'仅用于搜索，不会显示',kwHint:'仅可搜索，不会显示在卡片上。',cancel:'取消',submit:'添加',submitting:'添加中…',noMembers:'尚未注册成员',allMembers:'全部',pasteLabel:'批量粘贴',pasteApply:'应用',pasteDone:'已应用',statLine:(v,s,m)=>[[v,'视频'],[s,'日程'],[m,'成员']],emptyNoVideoTitle:'还没有视频',emptyNoVideoDesc:'开启管理模式并添加第一个视频。',emptyNoResultTitle:'没有搜索结果',emptyNoResultDesc:'请尝试其他搜索条件。',memberSection:'出演成员',schedSection:'日程',metaLine:(s,m)=>`日程 ${s}个 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'暂无注册成员。',noSchedOnCard:'暂无注册日程。',schedPhEdit:'输入日程…',save:'保存',cancelEdit:'取消',edit:'编辑',del:'删除',delConfirm:'要删除这个视频吗？',pwPrompt:'请输入管理员密码',pwWrong:'密码不正确。',invalidUrl:'请输入有效的YouTube链接。',noTitle:id=>'(无标题 · '+id+')',saveFail:m=>'保存失败: '+m,delFail:m=>'删除失败: '+m,loadFail:m=>'加载失败: '+m,saving:'保存中…',countryLabel:'国家',countryHint:'仅用于搜索，不会显示。',catLabel:'分类',cats:{concert:'演唱会',show:'公演',photobook:'画报',behind:'幕后',musicshow:'音乐节目',event:'粉丝签名会',offline:'线下活动',etc:'其他'}},
+  ja:{title:'動画アーカイブ',sub:'YouTubeリンクを登録し、出演メンバーとスケジュールで整理しましょう。',adminOn:'管理者モード終了',adminOff:'管理者モード',searchPh:'メンバーまたはスケジュールで検索…',searchBtn:'検索',addSummary:'新しい動画を登録',urlLabel:'YouTubeリンク',fetchDefault:'リンクを入力すると自動でタイトルを取得します。',fetching:'タイトルを取得中…',fetched:'タイトルを取得しました。',fetchFail:'タイトルを自動取得できませんでした。',titleLabel:'タイトル',memberLabel:'出演メンバー',selectAll:'全選択',deselectAll:'全解除',schedLabel:'スケジュール',add:'追加',kwLabel:'非表示検索ワード',kwPh:'検索のみ・画面には表示されません',kwHint:'カードには表示されません。',cancel:'キャンセル',submit:'登録',submitting:'登録中…',noMembers:'まだ登録されたメンバーがいません',allMembers:'全員',pasteLabel:'一括貼り付け',pasteApply:'適用',pasteDone:'適用しました',statLine:(v,s,m)=>[[v,'動画'],[s,'スケジュール'],[m,'メンバー']],emptyNoVideoTitle:'まだ動画がありません',emptyNoVideoDesc:'管理者モードをオンにして最初の動画を登録してください。',emptyNoResultTitle:'検索結果がありません',emptyNoResultDesc:'別の条件で検索してみてください。',memberSection:'出演メンバー',schedSection:'スケジュール',metaLine:(s,m)=>`スケジュール ${s}件 · 出演 ${m}名`,metaLineMember:(m)=>`出演 ${m}名`,noMemberOnCard:'登録されたメンバーがいません。',noSchedOnCard:'登録されたスケジュールがありません。',schedPhEdit:'スケジュールを入力…',save:'保存',cancelEdit:'キャンセル',edit:'編集',del:'削除',delConfirm:'この動画を削除しますか？',pwPrompt:'管理者パスワードを入力してください',pwWrong:'パスワードが正しくありません。',invalidUrl:'有効なYouTubeリンクを入力してください。',noTitle:id=>'(タイトルなし · '+id+')',saveFail:m=>'保存に失敗しました: '+m,delFail:m=>'削除に失敗しました: '+m,loadFail:m=>'読み込みに失敗しました: '+m,saving:'保存中…',countryLabel:'国',countryHint:'カードには表示されません。',catLabel:'カテゴリー',cats:{concert:'コンサート',show:'公演',photobook:'グラビア',behind:'ビハインド',musicshow:'音楽番組',event:'ファンサイン会',offline:'オフラインイベント',etc:'その他'}}
 };
 const COUNTRY_I18N = {
   ko:['한국','일본','중국','대만','홍콩','마카오','미국','캐나다','영국','프랑스','독일','이탈리아','스페인','러시아','호주','뉴질랜드','태국','베트남','필리핀','인도네시아','말레이시아','싱가포르','인도','브라질','멕시코','사우디아라비아','아랍에미리트',
@@ -412,6 +417,8 @@ function applyStaticText(){
   document.getElementById('cancelBox').textContent = t('cancel');
   document.getElementById('submitBtn').textContent = t('submit');
   document.getElementById('schedFixedHint').textContent = SCHED_HINT_I18N[lang];
+  document.getElementById('pasteLabel').textContent = t('pasteLabel');
+  document.getElementById('pasteDraftBtn').textContent = t('pasteApply');
   document.getElementById('yearLabel').textContent = YEAR_I18N[lang].label;
   document.getElementById('yearHint').textContent = YEAR_I18N[lang].hint;
   renderLangRow(); renderMemberRow(); renderSortRow(); renderDraftMemberGrid(); renderDraftCat(); renderDraftCountry();
@@ -419,6 +426,57 @@ function applyStaticText(){
 
 function splitTags(raw){
   return [...new Set(raw.split(',').map(s=>s.trim()).filter(Boolean))];
+}
+function parsePasteBlock(text){
+  const lines = (text||'').split('\n').map(l=>l.trim());
+  const langMap = {'한국어':'ko','영어':'en','중국어':'zh','일본어':'ja'};
+  const res = { year:null, sched:{ko:'',en:'',zh:'',ja:''}, kw:{ko:'',en:'',zh:'',ja:''}, countries:[] };
+  let section = null;
+  lines.forEach(raw=>{
+    if(!raw) return;
+    if(section===null && /^\d{4}$/.test(raw)){ res.year = raw; return; }
+    if(raw==='스케줄'){ section='sched'; return; }
+    if(raw==='숨겨진 검색어'){ section='kw'; return; }
+    if(raw==='나라'){ section='country'; return; }
+    const m = raw.match(/^(한국어|영어|중국어|일본어)\s*[:：]\s*(.*)$/);
+    if(m){
+      const code = langMap[m[1]], val = m[2].trim();
+      if(section==='sched') res.sched[code] = val;
+      else if(section==='kw') res.kw[code] = val;
+      return;
+    }
+    if(section==='country') res.countries.push(...splitTags(raw));
+  });
+  return res;
+}
+function applyPasteDraft(){
+  const ta = document.getElementById('pasteDraftInput');
+  const r = parsePasteBlock(ta.value);
+  if(r.year) document.getElementById('yearInput').value = r.year;
+  if(r.sched.ko||r.sched.en||r.sched.zh||r.sched.ja){
+    LANG_CODES.forEach(c=>{ document.getElementById('schedInput_'+c).value = r.sched[c]; });
+    addSchedToDraft();
+  }
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!draftKw[c].includes(k)) draftKw[c].push(k); }); });
+  r.countries.forEach(c=>{ if(!draftCountries.includes(c)) draftCountries.push(c); });
+  renderDraftKw(); renderDraftCountry();
+  ta.value=''; showToast();
+}
+function applyPasteEdit(vid){
+  if(!editDraft) return;
+  const ta = document.getElementById('pb-'+vid);
+  if(!ta) return;
+  const r = parsePasteBlock(ta.value);
+  if(r.year) editDraft.uploadYear = r.year;
+  if(r.sched.ko||r.sched.en||r.sched.zh||r.sched.ja){
+    const exists = editDraft.schedule.some(s=> typeof s==='object' && LANG_CODES.every(c=>(s[c]||'')===(r.sched[c]||'')));
+    if(!exists) editDraft.schedule.push({...r.sched});
+  }
+  editDraft.keywords = editDraft.keywords||{ko:[],en:[],zh:[],ja:[]};
+  LANG_CODES.forEach(c=>{ if(r.kw[c]) splitTags(r.kw[c]).forEach(k=>{ if(!editDraft.keywords[c].includes(k)) editDraft.keywords[c].push(k); }); });
+  editDraft.countries = editDraft.countries||[];
+  r.countries.forEach(c=>{ if(!editDraft.countries.includes(c)) editDraft.countries.push(c); });
+  render(); showToast();
 }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function parseYouTubeId(url){
@@ -562,7 +620,7 @@ function closeAddBox(){
   document.getElementById('addHead').classList.remove('open');
   document.getElementById('urlInput').value='';
   ['ko','en','zh','ja'].forEach(c=>{ document.getElementById('titleInput_'+c).value=''; document.getElementById('schedInput_'+c).value=''; });
-  document.getElementById('kwInput').value=''; document.getElementById('countryInput').value=''; document.getElementById('yearInput').value='';
+  document.getElementById('kwInput').value=''; document.getElementById('countryInput').value=''; document.getElementById('yearInput').value=''; document.getElementById('pasteDraftInput').value='';
   document.getElementById('fetchStatus').textContent=t('fetchDefault');
   lastFetchedUrl=''; draftMembers=[]; draftSched=[]; draftKw={ko:[],en:[],zh:[],ja:[]}; draftCategories=[]; draftCountries=[];
   renderDraftMemberGrid(); renderDraftSched(); renderDraftKw(); renderDraftCat(); renderDraftCountry();
@@ -669,7 +727,7 @@ function render(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
 
   let list = [...videos];
-  if(activeMembers.size){ list = list.filter(v=>(v.members||[]).some(m=>activeMembers.has(m))); }
+  if(activeMembers.size){ const amArr=[...activeMembers]; list = list.filter(v=>amArr.every(m=>(v.members||[]).includes(m))); }
   if(q){
     const nq = norm(q);
     list = list.filter(v=>
@@ -703,7 +761,7 @@ function render(){
 
     const memberHtml = editing
       ? ATEEZ_MEMBERS.map(m=>`<button type="button" class="pick-btn ${vMembers.includes(m)?'picked':''}" onclick="toggleEditMember('${m}')">${mName(m)}</button>`).join('')
-      : (vMembers.length ? vMembers.map(m=>`<span class="member-badge">${mName(m)}</span>`).join('') : `<span class="empty-txt">${t('noMemberOnCard')}</span>`);
+      : (vMembers.length===ATEEZ_MEMBERS.length ? `<span class="member-badge">${t('allMembers')}</span>` : vMembers.length ? vMembers.map(m=>`<span class="member-badge">${mName(m)}</span>`).join('') : `<span class="empty-txt">${t('noMemberOnCard')}</span>`);
 
     const schedHtml = vSched.map((k,idx)=>{
       if(!editing){
@@ -752,6 +810,8 @@ function render(){
 
     const catSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('catLabel')}</div><div class="row-flex" style="margin-top:9px">${catPickerHtml}</div></div>`;
 
+    const pasteSection = !editing ? '' : `<div class="sec"><div class="sec-label">${t('pasteLabel')}</div><textarea id="pb-${v.id}" rows="4" placeholder="형식대로 붙여넣고 적용을 눌러주세요" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;"></textarea><div class="add-actions" style="justify-content:flex-start;margin-top:8px;"><button type="button" style="padding:9px 20px;border-radius:var(--r-pill);border:none;background:var(--p-soft);color:var(--p);font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;" onclick="applyPasteEdit('${v.id}')">${t('pasteApply')}</button></div></div>`;
+
     return `<div class="card ${flashId===v.id?'flash':''}">
       <div class="thumb">
         <img src="https://img.youtube.com/vi/${v.ytid}/hqdefault.jpg" alt="thumbnail" loading="lazy">
@@ -767,6 +827,7 @@ function render(){
         ${catSection}
         ${kwSection}
         ${countrySection}
+        ${pasteSection}
       </div>
     </div>`;
   }).join('');
@@ -781,7 +842,8 @@ Object.assign(window, {
   addKwToDraft, removeDraftKw, addEditKw, removeEditKw, setLang,
   toggleDraftCategory, toggleEditCategory, addCountryToDraft, removeDraftCountry,
   addEditCountry, removeEditCountry, setSort,
-  openNotice, closeNotice, setNoticeLang
+  openNotice, closeNotice, setNoticeLang,
+  applyPasteDraft, applyPasteEdit
 });
 
 document.getElementById('adminBtn').classList.toggle('on', isAdmin);
